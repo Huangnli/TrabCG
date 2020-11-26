@@ -1,12 +1,10 @@
 #version 130
 
-in vec3 normal;
-
 out vec3 color;
 
-uniform vec3 outColor1;
+uniform vec3 outColor;
 
 void main(){
-  color = outColor1;
+  color = outColor;
   
 }
