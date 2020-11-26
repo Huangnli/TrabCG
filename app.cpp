@@ -58,7 +58,7 @@ OpenGLContext::OpenGLContext(int argc, char *argv[]) {
 
 	currentInstance = this;
 
-	this->initialize();
+	//this->initialize();
 }
 
 OpenGLContext::~OpenGLContext() {
@@ -181,9 +181,16 @@ unsigned int OpenGLContext::linkShaderProgram(unsigned int vertexShaderId, unsig
 
 
 
-void OpenGLContext::initialize() {
+void OpenGLContext::initialize(entrada) {
     // Set "clearing" or background color
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black and opaque
+
+    if(add_cube){
+
+
+    init_cube{
+
+   
 
     // Create and compile our GLSL program from the shaders
 	GLint vertexShaderId = this->loadAndCompileShader("shader130/objeto.vp",
@@ -218,6 +225,11 @@ void OpenGLContext::initialize() {
 
     glUseProgram(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+   
+    }
+  
+   }
+
 }
 
 void OpenGLContext::rendering( ) const {
@@ -237,6 +249,15 @@ void OpenGLContext::rendering( ) const {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
 
+    if(cube){
+
+        glDrawArrays(anjdancube)
+    }
+    if(cone){
+
+
+        glDrawArrays(cone)
+    }
     //fazendo a transformação na model
     glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
     model = glm::rotate(model, 45.0f, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -292,6 +313,10 @@ void OpenGLContext::finalize() const {
 int main(int argc, char *argv[]) {
 	OpenGLContext context { argc, argv };
 
+    //leitura do comando
+    string entrada; 
+
+    context.initialize(entrada);
 	context.printVersion();
 	context.runLoop();
 

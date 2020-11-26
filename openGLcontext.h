@@ -13,6 +13,7 @@ public:
     void printVersion() const; // Show OpenGL Version
     void runLoop() const;
 
+    void initialize();              // Init our render
 private:
     
     unsigned int programId;
@@ -21,7 +22,6 @@ private:
     static void glutRenderCallback();      // Render window
     static void glutReshapeCallback(int width, int height); // Reshape window
 
-    void initialize();              // Init our render
     void rendering() const;        // Render Loop
     void finalize() const;          // Finalize our render    
 
