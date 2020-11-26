@@ -6,23 +6,21 @@
 
 using namespace std;
 
-class objeto{
+class objeto
+{
 private:
-    unsigned int vao;
     vector<glm::vec3> vertexPositions, vertexNormals;
-    vector<glm::mat4> model;
-    
+    vector<glm::vec3> vertexBuffer;
+    glm::mat4 model;
 
 public:
-    vector<glm::vec3> vertexBuffer;
-
     objeto(const char *path);
     ~objeto();
-    vector<glm::vec3> getVertexBuffer();
-    vector<glm::vec3> getPositions();
-    vector<glm::vec3> getNormals();
 
-    unsigned int getVAO();
+    vector<glm::vec3> getVertexBuffer();
+    glm::mat4 getModel();
+    //vector<glm::vec3> getPositions();
+    //vector<glm::vec3> getNormals();
 
     bool loadObj(const char *path);
 };

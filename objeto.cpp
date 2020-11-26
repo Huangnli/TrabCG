@@ -16,8 +16,6 @@ objeto::objeto(const char *path){
         vector<glm::vec3> temp_vertices;
         vector<glm::vec3> temp_normals;
 
-        //temporary variable to vertexBuffer
-
         //reading the file data
         FILE *file = fopen(path, "r");
         char line[MAX];
@@ -42,12 +40,11 @@ objeto::objeto(const char *path){
 
             else if (strcmp(line, "f") == 0)
             { //verify if it's a face, and make a index contents
-                unsigned int vertexIndex[3], normalIndex[3];
-                int matches = fscanf(file, "%d//%d  %d//%d  %d//%d\n", &vertexIndex[0], &normalIndex[0],
-                                     &vertexIndex[1], &normalIndex[1],
-                                     &vertexIndex[2], &normalIndex[2]);
-                if (matches != 6)
-                {
+                unsigned int vertexIndex[3], textureIndex[3], normalIndex[3];
+                int matches = fscanf(file, "%d/%d/%d  %d/%d/%d  %d/%d/%d\n", &vertexIndex[0], &textureIndex[0], &normalIndex[0],
+                                                                            &vertexIndex[1], &textureIndex[0], &normalIndex[1],
+                                                                            &vertexIndex[2], &textureIndex[0], &normalIndex[2]);
+                if (matches != 9){
                     printf("error in reading file! try another way.\n\n");
                     
                 }
@@ -77,27 +74,17 @@ objeto::objeto(const char *path){
             vertexBuffer.push_back(normal);
         }
 
+        model = glm::mat4(1.0);
 }
 
 objeto::~objeto(){
 
 }
 
-unsigned int objeto::getVAO(){
-    return vao;
-}
-
-
-vector<glm::vec3> objeto::getNormals(){
-}
-
-vector<glm::vec3> objeto::getPositions(){
-    
-}
-
 vector<glm::vec3> objeto::getVertexBuffer(){
     return vertexBuffer; 
 
 }
-
-
+glm::mat4 objeto::getModel(){
+    return model;
+}
