@@ -4,6 +4,7 @@
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
 #include "objeto.h"
+#include "string.h"
 
 #define MAX 50
 
