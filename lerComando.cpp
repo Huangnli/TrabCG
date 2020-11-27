@@ -6,18 +6,29 @@
 using namespace std;
 
 lerComando::lerComando(){
+     
+}
+
+lerComando::~lerComando(){
+}
+
+void lerComando::ler(){
     do{
         scanf("%c", &c);
         entrada.push_back(c);
     }while (c != '\n');
-    entrada.pop_back(); //pra tirar o \n
 
-    //string addcubo("add_shape cube");
-    //if( entrada.compare(addcubo) == 0 )
-      //  cube = 1;
+    //pra tirar o \n
+    entrada.pop_back();
+    
 }
 
-lerComando::~lerComando(){
+void lerComando::deleteEntrada(){
+
+    int i = entrada.length();
+    for(i; i > 0; i--){
+        entrada.pop_back();
+    }
 }
 
 string lerComando::getEntrada(){

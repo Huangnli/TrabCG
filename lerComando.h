@@ -12,5 +12,7 @@ private:
 public:
     lerComando();
     ~lerComando();
+    void ler();
+    void deleteEntrada();
     string getEntrada();
 };
