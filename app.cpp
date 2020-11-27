@@ -346,7 +346,7 @@ void OpenGLContext::rendering() const
 
         //ajustando a camera
         glm::mat4 projection = glm::mat4(1.0);
-        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, 2.0f, -2.0f);
+        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
         int projLoc = glGetUniformLocation(programId, "projection");
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
 
@@ -381,7 +381,7 @@ void OpenGLContext::rendering() const
 
         //ajustando a camera
         glm::mat4 projection = glm::mat4(1.0);
-        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, 2.0f, -2.0f);
+        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
         int projLoc = glGetUniformLocation(programIdCone, "projection");
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
 
