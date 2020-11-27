@@ -10,8 +10,11 @@ class objeto
 {
 private:
     vector<glm::vec3> vertexPositions, vertexNormals;
-    vector<glm::vec3> vertexBuffer;
+    vector<glm::vec3> vbuffer;
     glm::mat4 model;
+
+    int nVertices;
+    unsigned int vbo;
 
 public:
     objeto(const char *path);
@@ -19,8 +22,8 @@ public:
 
     vector<glm::vec3> getVertexBuffer();
     glm::mat4 getModel();
-    //vector<glm::vec3> getPositions();
-    //vector<glm::vec3> getNormals();
+    unsigned int getVBO();
+    int getNumeroVertices();
 
     bool loadObj(const char *path);
 };

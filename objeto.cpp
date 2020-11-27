@@ -6,6 +6,7 @@
 #include "objeto.h"
 #include "string.h"
 
+
 #define MAX 50
 
 using namespace std;
@@ -71,19 +72,31 @@ objeto::objeto(const char *path){
 
             glm::vec3 vertex = temp_vertices[indexV - 1];
             glm::vec3 normal = temp_normals[indexN - 1];
-            vertexBuffer.push_back(vertex);
-            vertexBuffer.push_back(normal);
+            vbuffer.push_back(vertex);
+            vbuffer.push_back(normal);
         }
 
         model = glm::mat4(1.0);
+        nVertices = vbuffer.size()/2;
+
+        //vertexBuffer aux(vbuffer.data(), vbuffer.size() * sizeof(glm::vec3));
+        //vbo = aux.getVBOID();
 }
 
 objeto::~objeto(){
 
 }
 
+unsigned int objeto::getVBO(){
+    return vbo;
+}
+
+int objeto::getNumeroVertices(){
+    return nVertices;
+}
+
 vector<glm::vec3> objeto::getVertexBuffer(){
-    return vertexBuffer; 
+    return vbuffer; 
 
 }
 glm::mat4 objeto::getModel(){
