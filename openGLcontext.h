@@ -17,6 +17,7 @@ public:
     void rendering() const; // Render Loop
 private:
     unsigned int programId;
+    unsigned int programIdCone;
     unsigned int programLight;
     unsigned int vao;
     unsigned int vbo[2];
