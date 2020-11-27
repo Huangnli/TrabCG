@@ -14,6 +14,7 @@ public:
     void runLoop() const;
 
     void initialize(); // Init our render
+    void rendering() const; // Render Loop
 private:
     unsigned int programId;
     unsigned int programLight;
@@ -22,7 +23,6 @@ private:
     static void glutRenderCallback();                       // Render window
     static void glutReshapeCallback(int width, int height); // Reshape window
 
-    void rendering() const; // Render Loop
     void finalize() const;  // Finalize our render
 
     unsigned int loadAndCompileShader(const std::string &filename, const int glType) const;
