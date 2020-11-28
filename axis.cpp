@@ -1,8 +1,7 @@
 #include "axis.h"
 
-axis::axis(string name, unsigned int idvao, unsigned int idvbo){
-    //vertexLines.push_back(glm::vec3());
-    nome = name;
+axis::axis(unsigned int idvao, unsigned int idvbo){
+    
     vao = idvao;
     vbo = idvbo;
     setColorAxis();

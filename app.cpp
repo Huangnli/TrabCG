@@ -432,27 +432,14 @@ void OpenGLContext::initialize()
     this->programAxis = this->linkShaderProgram(vertexShaderAxisId, fragmentShaderAxisId);
 
     if (ler.getEntrada().compare(0, 7, "axis_on") == 0){
-        string nameAxis;
-        for (int i = 8; i < ler.getEntrada().length(); ++i) {
-            nameAxis.push_back(ler.getEntrada().at(i));
-        }
-
-        axis *aux = new axis(nameAxis, vaoidAxis, vboidAxis);
+        axis *aux = new axis(vaoidAxis, vboidAxis);
         axisVetor.push_back(aux);
     }
 
     if(ler.getEntrada().compare(0, 8, "axis_off")  == 0){
-        string nameAxis;
-        //pegar o nome que foi digitado
-        for (int i = 9; i < ler.getEntrada().length(); ++i) {
-            nameAxis.push_back(ler.getEntrada().at(i));
-        }
         //apagar o objeto
-        for(int i = 0; i < axisVetor.size(); i++){
-			if(strcmp(nameAxis.c_str(), axisVetor[i]->nome.c_str()) == 0) {
-				axisVetor.erase(axisVetor.begin()+i);
-			}
-		}
+		axisVetor.erase(axisVetor.begin());
+
     }
 
     for(int i = 0; i < axisVetor.size(); i++){
@@ -468,9 +455,9 @@ void OpenGLContext::initialize()
 
         //passando a localização dos atributos para o shader - 0= inicio do VBO
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
-        glBindAttribLocation(this->programId, 0, "axisPosition"); 
+        glBindAttribLocation(this->programAxis, 0, "axisPosition");
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
-        glBindAttribLocation(this->programId, 0, "colorAxis"); 
+        glBindAttribLocation(this->programAxis, 0, "colorAxis");
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);

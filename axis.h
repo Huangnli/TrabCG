@@ -10,7 +10,6 @@ class axis{
 
 public:
     
-    string nome;
     unsigned int vao;
     unsigned int vbo;
 
@@ -18,7 +17,7 @@ public:
     vector<glm::vec3> colorAxis;    //serão 3 cores
     vector<glm::vec3> axisBuffer;
 
-    axis(string name, unsigned int idvao, unsigned int idvbo);
+    axis(unsigned int idvao, unsigned int idvbo);
     ~axis();
 
     void setColorAxis();
