@@ -25,6 +25,10 @@ private:
     unsigned int vbo;
     static void glutRenderCallback();                       // Render window
     static void glutReshapeCallback(int width, int height); // Reshape window
+    
+    void createShaderObjects();
+    void createShaderLight();
+    void createShaderAxis();
 
     void finalize() const;  // Finalize our render
 
