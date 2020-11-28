@@ -1,10 +1,6 @@
 #include "objeto.h"
 #include "string.h"
 
-#define GL_GLEXT_PROTOTYPES 1
-#define GL3_PROTOTYPES 1
-#define MAX 50
-
 using namespace std;
 
 objeto::objeto(string name, unsigned int idvao, unsigned int idvbo , vector<glm::vec3> dadosDoObjeto, glm::mat4 matrizmodel, 
