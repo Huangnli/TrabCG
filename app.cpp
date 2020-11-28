@@ -7,9 +7,10 @@
 // g++ --std=c++11 *.cpp -o main -lglew32 -lfreeglut -lglu32 -lopengl32
 
 #include "openGLcontext.h"
-#include "objeto.h"
-#include "light.h"
 #include "lerComando.h"
+#include "objeto.h"
+#include "axis.h"
+#include "light.h"
 
 #include <iostream>
 #include <cstdio>
@@ -38,10 +39,13 @@ namespace
     OpenGLContext *currentInstance = nullptr;
 }
 vector<objeto*> objetoVetor;
+vector<axis*> axisVetor;
 lerComando ler;
-int nVertices, nVerticesCone;
+int nVertices;
 unsigned int vboid = 1;
 unsigned int vaoid = 1;
+unsigned int vboidAxis = 1;
+unsigned int vaoidAxis = 1;
 
 OpenGLContext::OpenGLContext(int argc, char *argv[])
 {
@@ -419,36 +423,88 @@ void OpenGLContext::initialize()
         vaoid++;
         vboid++;
     }
-   
-    // glm::vec3 position = glm::vec3(1.0f, 0.0f, 0.0f);
-    // glm::vec3 color = glm::vec3(1.0f, 1.0f, 0.0f);
-    // light light(position, color);
-    // vector<glm::vec3> lightData;
-    // lightData.push_back(light.getPosition());
-    // lightData.push_back(light.getColor());
 
-    // GLint lightVShaderId = this->loadAndCompileShader("shader130/light.vp",
-    //                                                   GL_VERTEX_SHADER);
-    // GLint lightFShaderId = this->loadAndCompileShader("shader130/light.fp",
-    //                                                   GL_FRAGMENT_SHADER);
-    // this->programLight = this->linkShaderProgram(lightVShaderId, lightFShaderId);
+    //criando shaders para axis
+    GLint vertexShaderAxisId = this->loadAndCompileShader("shader130/axis.vp",
+                                                      GL_VERTEX_SHADER);
+    GLint fragmentShaderAxisId = this->loadAndCompileShader("shader130/axis.fp",
+                                                        GL_FRAGMENT_SHADER);
+    this->programAxis = this->linkShaderProgram(vertexShaderAxisId, fragmentShaderAxisId);
 
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    // glBufferData(GL_ARRAY_BUFFER, lightData.size() * sizeof(glm::vec3), lightData.data(), GL_STATIC_DRAW);
+    if (ler.getEntrada().compare(0, 7, "axis_on") == 0){
+        string nameAxis;
+        for (int i = 8; i < ler.getEntrada().length(); ++i) {
+            nameAxis.push_back(ler.getEntrada().at(i));
+        }
 
-    // //able the first buffer
-    // glEnableVertexAttribArray(0);
-    // glEnableVertexAttribArray(1);
+        axis *aux = new axis(nameAxis, vaoidAxis, vboidAxis);
+        axisVetor.push_back(aux);
+    }
 
-    // //passando a localização dos atributos para o shader - 0= inicio do VBO
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
-    // glBindAttribLocation(this->programLight, 0, "lightPosition");
-    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
-    // glBindAttribLocation(this->programLight, 0, "outcolor");
+    if(ler.getEntrada().compare(0, 8, "axis_off")  == 0){
+        string nameAxis;
+        //pegar o nome que foi digitado
+        for (int i = 9; i < ler.getEntrada().length(); ++i) {
+            nameAxis.push_back(ler.getEntrada().at(i));
+        }
+        //apagar o objeto
+        for(int i = 0; i < axisVetor.size(); i++){
+			if(strcmp(nameAxis.c_str(), axisVetor[i]->nome.c_str()) == 0) {
+				axisVetor.erase(axisVetor.begin()+i);
+			}
+		}
+    }
 
-    // glUseProgram(0);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
+    for(int i = 0; i < axisVetor.size(); i++){
+        glGenVertexArrays(1, static_cast<GLuint *>(&axisVetor[i]->vao));
+        glBindVertexArray(axisVetor[i]->vao);
+
+        glGenBuffers(1, static_cast<GLuint *>(&axisVetor[i]->vbo));
+        glBindBuffer(GL_ARRAY_BUFFER, axisVetor[i]->vbo);
+        glBufferData(GL_ARRAY_BUFFER, axisVetor[i]->axisBuffer.size() * sizeof(glm::vec3), axisVetor[i]->axisBuffer.data(), GL_STATIC_DRAW);
+        //able the first buffer
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+        //passando a localização dos atributos para o shader - 0= inicio do VBO
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+        glBindAttribLocation(this->programId, 0, "axisPosition"); 
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+        glBindAttribLocation(this->programId, 0, "colorAxis"); 
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        vaoidAxis++;
+        vboidAxis++;
+    }
+
+        // glm::vec3 position = glm::vec3(1.0f, 0.0f, 0.0f);
+        // glm::vec3 color = glm::vec3(1.0f, 1.0f, 0.0f);
+        // light light(position, color);
+        // vector<glm::vec3> lightData;
+        // lightData.push_back(light.getPosition());
+        // lightData.push_back(light.getColor());
+
+        // GLint lightVShaderId = this->loadAndCompileShader("shader130/light.vp",
+        //                                                   GL_VERTEX_SHADER);
+        // GLint lightFShaderId = this->loadAndCompileShader("shader130/light.fp",
+        //                                                   GL_FRAGMENT_SHADER);
+        // this->programLight = this->linkShaderProgram(lightVShaderId, lightFShaderId);
+
+        // glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+        // glBufferData(GL_ARRAY_BUFFER, lightData.size() * sizeof(glm::vec3), lightData.data(), GL_STATIC_DRAW);
+
+        // //able the first buffer
+        // glEnableVertexAttribArray(0);
+        // glEnableVertexAttribArray(1);
+
+        // //passando a localização dos atributos para o shader - 0= inicio do VBO
+        // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+        // glBindAttribLocation(this->programLight, 0, "lightPosition");
+        // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+        // glBindAttribLocation(this->programLight, 0, "outcolor");
+
+    }
 
 void OpenGLContext::rendering() const
 {
@@ -457,9 +513,9 @@ void OpenGLContext::rendering() const
     // Clear the colorbuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+    //desenhando formas
     for(int i = 0; i < objetoVetor.size(); i++){
-        //clean things up
+        
         //printf("%d\n", objetoVetor[i]->vertexBuffer.size()/2);
         glUseProgram(this->programId);
         glBindVertexArray(objetoVetor[i]->vao);
@@ -488,10 +544,20 @@ void OpenGLContext::rendering() const
         glUseProgram(0);
     }
 
-    //clean things up
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindVertexArray(0);
-    // glUseProgram(0);
+    //desenhando eixos
+    for(int i = 0; i < axisVetor.size(); i++){        
+        //printf("%d\n", objetoVetor[i]->vertexBuffer.size()/2);
+        glUseProgram(this->programAxis);
+        glBindVertexArray(axisVetor[i]->vao);
+        glBindBuffer(GL_ARRAY_BUFFER, axisVetor[i]->vbo);
+
+        glDrawArrays(GL_LINES, 0, axisVetor[i]->axisBuffer.size()/2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+    }
+
 
     // glUseProgram(this->programLight);
 
@@ -504,11 +570,6 @@ void OpenGLContext::rendering() const
 
     // glPointSize(10.0f);
     // glDrawArrays(GL_POINTS, 0, 1);
-
-    //clean things up
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
 
     glutSwapBuffers(); //necessario para windows!
 }
