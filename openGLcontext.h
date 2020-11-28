@@ -12,6 +12,7 @@ public:
 
     void printVersion() const; // Show OpenGL Version
     void runLoop() const;
+    void loadObj(const char *path, std::vector<glm::vec3> &vbuffer);
 
     void initialize(); // Init our render
     void rendering() const; // Render Loop
@@ -20,7 +21,7 @@ private:
     unsigned int programIdCone;
     unsigned int programLight;
     unsigned int vao;
-    unsigned int vbo[2];
+    unsigned int vbo;
     static void glutRenderCallback();                       // Render window
     static void glutReshapeCallback(int width, int height); // Reshape window
 
