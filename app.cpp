@@ -6,7 +6,7 @@
 // Windows
 // g++ --std=c++11 *.cpp -o main -lglew32 -lfreeglut -lglu32 -lopengl32
 
-#include "openGLcontext.h"
+#include "OpenGLContext.h"
 #include "lerComando.h"
 #include "objeto.h"
 #include "axis.h"
@@ -40,15 +40,17 @@ namespace
 }
 vector<objeto*> objetoVetor;
 vector<axis*> axisVetor;
+vector<light*> lightVetor;
 lerComando ler;
 int nVertices;
 unsigned int vboid = 1;
 unsigned int vaoid = 1;
 unsigned int vboidAxis = 1;
 unsigned int vaoidAxis = 1;
+unsigned int vboidLight = 1;
+unsigned int vaoidLight = 1;
 
-OpenGLContext::OpenGLContext(int argc, char *argv[])
-{
+OpenGLContext::OpenGLContext(int argc, char *argv[]){
     glutInit(&argc, argv); // Initialize GLUT
 
     glutInitContextVersion(3, 0); // IMPORTANT!
@@ -197,6 +199,33 @@ unsigned int OpenGLContext::linkShaderProgram(unsigned int vertexShaderId, unsig
     return shaderProgramId;
 }
 
+void OpenGLContext::createShaderObjects(){
+
+    // Create and compile our GLSL program from the shaders
+    GLint vertexShaderId = this->loadAndCompileShader("shader130/objeto.vp",
+                                                      GL_VERTEX_SHADER);
+    GLint fragmentShaderId = this->loadAndCompileShader("shader130/objeto.fp",
+                                                        GL_FRAGMENT_SHADER);
+    this->programId = this->linkShaderProgram(vertexShaderId, fragmentShaderId);
+}
+
+void OpenGLContext::createShaderAxis(){
+    GLint vertexShaderAxisId = this->loadAndCompileShader("shader130/axis.vp",
+                                                      GL_VERTEX_SHADER);
+    GLint fragmentShaderAxisId = this->loadAndCompileShader("shader130/axis.fp",
+                                                        GL_FRAGMENT_SHADER);
+    this->programAxis = this->linkShaderProgram(vertexShaderAxisId, fragmentShaderAxisId);
+}
+
+void OpenGLContext::createShaderLight(){
+    GLint lightVShaderId = this->loadAndCompileShader("shader130/light.vp",
+                                                          GL_VERTEX_SHADER);
+    GLint lightFShaderId = this->loadAndCompileShader("shader130/light.fp",
+                                                          GL_FRAGMENT_SHADER);
+    this->programLight = this->linkShaderProgram(lightVShaderId, lightFShaderId);
+
+}
+
 void OpenGLContext::loadObj(const char *path, vector<glm::vec3> &vbuffer){
     //temporary variables to store the .obj's contents:
         vector<unsigned int> vertexIndices, normalIndices;
@@ -262,20 +291,16 @@ void OpenGLContext::loadObj(const char *path, vector<glm::vec3> &vbuffer){
         }
 }
 
-void OpenGLContext::initialize()
-{
+void OpenGLContext::initialize(){
+
     glEnable(GL_DEPTH_TEST);
     // Set "clearing" or background color
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black and opaque
 
-     // Create and compile our GLSL program from the shaders
-    GLint vertexShaderId = this->loadAndCompileShader("shader130/objeto.vp",
-                                                        GL_VERTEX_SHADER);
-    GLint fragmentShaderId = this->loadAndCompileShader("shader130/objeto.fp",
-                                                        GL_FRAGMENT_SHADER);
-    this->programId = this->linkShaderProgram(vertexShaderId, fragmentShaderId);
-
     if(ler.getEntrada().compare(0, 14, "add_shape cube")  == 0){
+        //creating shaders
+        createShaderObjects();
+
         vector<glm::vec3> vertexData;
         string name;
         //printf("%s\n", ler.getEntrada().c_str());
@@ -304,6 +329,8 @@ void OpenGLContext::initialize()
     }
 
     if(ler.getEntrada().compare(0, 14, "add_shape cone")  == 0){
+        createShaderObjects();
+
         vector<glm::vec3> vertexData;
         string name;
         // printf("%s\n", ler.getEntrada().c_str());
@@ -332,6 +359,8 @@ void OpenGLContext::initialize()
     }
 
     if(ler.getEntrada().compare(0, 15, "add_shape torus")  == 0){
+        createShaderObjects();
+
         vector<glm::vec3> vertexData;
         string name;
         // printf("%s\n", ler.getEntrada().c_str());
@@ -360,6 +389,7 @@ void OpenGLContext::initialize()
     }
 
     if(ler.getEntrada().compare(0, 16, "add_shape sphere")  == 0){
+        createShaderObjects();
         vector<glm::vec3> vertexData;
         string name;
         // printf("%s\n", ler.getEntrada().c_str());
@@ -424,14 +454,11 @@ void OpenGLContext::initialize()
         vboid++;
     }
 
-    //criando shaders para axis
-    GLint vertexShaderAxisId = this->loadAndCompileShader("shader130/axis.vp",
-                                                      GL_VERTEX_SHADER);
-    GLint fragmentShaderAxisId = this->loadAndCompileShader("shader130/axis.fp",
-                                                        GL_FRAGMENT_SHADER);
-    this->programAxis = this->linkShaderProgram(vertexShaderAxisId, fragmentShaderAxisId);
-
+    
     if (ler.getEntrada().compare(0, 7, "axis_on") == 0){
+        //criando shaders para axis
+        createShaderAxis();
+
         axis *aux = new axis(vaoidAxis, vboidAxis);
         axisVetor.push_back(aux);
     }
@@ -439,7 +466,6 @@ void OpenGLContext::initialize()
     if(ler.getEntrada().compare(0, 8, "axis_off")  == 0){
         //apagar o objeto
 		axisVetor.erase(axisVetor.begin());
-
     }
 
     for(int i = 0; i < axisVetor.size(); i++){
@@ -472,12 +498,7 @@ void OpenGLContext::initialize()
         // lightData.push_back(light.getPosition());
         // lightData.push_back(light.getColor());
 
-        // GLint lightVShaderId = this->loadAndCompileShader("shader130/light.vp",
-        //                                                   GL_VERTEX_SHADER);
-        // GLint lightFShaderId = this->loadAndCompileShader("shader130/light.fp",
-        //                                                   GL_FRAGMENT_SHADER);
-        // this->programLight = this->linkShaderProgram(lightVShaderId, lightFShaderId);
-
+        
         // glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
         // glBufferData(GL_ARRAY_BUFFER, lightData.size() * sizeof(glm::vec3), lightData.data(), GL_STATIC_DRAW);
 
