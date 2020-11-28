@@ -6,7 +6,9 @@
 
 using namespace std;
 
-light::light(glm::vec3 position){
+light::light(glm::vec3 position, unsigned int idvao, unsigned int idvbo){
+    vao = idvao;
+    vbo = idvbo;
     lightPosition = position;
     lightColor = glm::vec3(1.0f, 1.0f, 0.0f);
     setLightBuffer();
