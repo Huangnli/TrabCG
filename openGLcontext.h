@@ -4,8 +4,9 @@
 #include <vector>
 #include <glm/fwd.hpp>
 
-class OpenGLContext
-{
+
+class OpenGLContext{
+
 public:
     OpenGLContext(int argc, char *argv[]); // Constructor
     ~OpenGLContext();                      // Destructor
@@ -18,7 +19,7 @@ public:
     void rendering() const; // Render Loop
 private:
     unsigned int programId;
-    unsigned int programIdCone;
+    unsigned int programAxis;
     unsigned int programLight;
     unsigned int vao;
     unsigned int vbo;
