@@ -6,9 +6,10 @@
 
 using namespace std;
 
-light::light(glm::vec3 position, glm::vec3 rgb){
+light::light(glm::vec3 position){
     lightPosition = position;
-    lightColor = rgb;
+    lightColor = glm::vec3(1.0f, 1.0f, 0.0f);
+    setLightBuffer();
 }
 
 light::~light(){
@@ -18,6 +19,7 @@ glm::vec3 light::getPosition(){
     return lightPosition;
 }
 
-glm::vec3 light::getColor(){
-    return lightColor;
+void light::setLightBuffer(){
+    lightBuffer.push_back(lightPosition);
+    lightBuffer.push_back(lightColor);
 }

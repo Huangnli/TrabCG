@@ -7,15 +7,17 @@
 using namespace std;
 
 class light{
-private:
-    
-    glm::vec3 lightPosition;
-    glm::vec3 lightColor;
 
 public:
-    light(glm::vec3 positions, glm::vec3 rgb);
+    glm::vec3 lightPosition;
+    glm::vec3 lightColor;
+    vector<glm::vec3> lightBuffer;
+
+    light(glm::vec3 position);
     ~light();
 
     glm::vec3 getPosition();
-    glm::vec3 getColor();
+
+    void setLightBuffer();
+    
 };
