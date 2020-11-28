@@ -1,0 +1,13 @@
+#version 130
+
+in vec3 axisPosition;
+in vec3 axisColor;
+
+out vec3 colorAxis;
+
+void main(){
+  
+  gl_Position = vec4(axisPosition, 1.0);
+
+  colorAxis = axisColor;
+}
