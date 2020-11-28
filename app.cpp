@@ -453,8 +453,7 @@ void OpenGLContext::initialize(){
         vaoid++;
         vboid++;
     }
-
-    
+  
     if (ler.getEntrada().compare(0, 7, "axis_on") == 0){
         //criando shaders para axis
         createShaderAxis();
@@ -490,6 +489,9 @@ void OpenGLContext::initialize(){
         vaoidAxis++;
         vboidAxis++;
     }
+
+
+    //código para fonte de luz
 
         // glm::vec3 position = glm::vec3(1.0f, 0.0f, 0.0f);
         // glm::vec3 color = glm::vec3(1.0f, 1.0f, 0.0f);
@@ -554,7 +556,7 @@ void OpenGLContext::rendering() const
 
     //desenhando eixos
     for(int i = 0; i < axisVetor.size(); i++){        
-        //printf("%d\n", objetoVetor[i]->vertexBuffer.size()/2);
+        
         glUseProgram(this->programAxis);
         glBindVertexArray(axisVetor[i]->vao);
         glBindBuffer(GL_ARRAY_BUFFER, axisVetor[i]->vbo);
@@ -566,8 +568,20 @@ void OpenGLContext::rendering() const
         glUseProgram(0);
     }
 
+    //desenhando fontes de luz
+    // for(int i = 0; i < lightVetor.size(); i++){        
+                
+    //     glUseProgram(this->programLight);
+    //     glBindVertexArray(lightVetor[i]->vao);
+    //     glBindBuffer(GL_ARRAY_BUFFER, lightVetor[i]->vbo);
 
-    // glUseProgram(this->programLight);
+    //     glPointSize(10.0f);
+    //     glDrawArrays(GL_POINTS, 0, lightVetor[i]->lightBuffer.size()/2);
+
+    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //     glBindVertexArray(0);
+    //     glUseProgram(0);
+    // }
 
     // glBindVertexArray(vao);
     // glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
@@ -576,8 +590,6 @@ void OpenGLContext::rendering() const
     // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
     // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
 
-    // glPointSize(10.0f);
-    // glDrawArrays(GL_POINTS, 0, 1);
 
     glutSwapBuffers(); //necessario para windows!
 }
