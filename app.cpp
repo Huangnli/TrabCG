@@ -500,6 +500,40 @@ void OpenGLContext::initialize(){
 			}
         }
     }
+
+    //add escala
+    if(ler.getEntrada().compare(0, 5, "scale")  == 0){
+        string name;
+        int i = 6;
+        string fl1, fl2, fl3;
+        //pegar o nome que foi digitado
+        while (ler.getEntrada().at(i) != ' ' ) {
+             name.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' ' ) {
+             fl1.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' ' ) {
+             fl2.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while ( i < ler.getEntrada().length()) {
+             fl3.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+
+        for(int j = 0; j < objetoVetor.size(); j++){
+			if(strcmp(name.c_str(), objetoVetor[j]->nome.c_str()) == 0){
+				glm::mat4 model = glm::scale( glm::mat4(1.0f), glm::vec3(stof(fl1),stof(fl2),stof(fl3)) );
+				objetoVetor[j]->model = objetoVetor[j]->model * model;
+			}
+        }
+    }
     
     //add rotacao
     if(ler.getEntrada().compare(0, 6, "rotate")  == 0){
