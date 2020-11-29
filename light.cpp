@@ -6,7 +6,9 @@
 
 using namespace std;
 
-light::light(glm::vec3 position, unsigned int idvao, unsigned int idvbo){
+light::light(string name, glm::vec3 position, unsigned int idvao, unsigned int idvbo)
+{
+    nome = name;
     vao = idvao;
     vbo = idvbo;
     lightPosition = position;
