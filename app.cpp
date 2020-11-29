@@ -430,6 +430,44 @@ void OpenGLContext::initialize(){
 			}
 		}
     }
+    //add rotacao
+    if(ler.getEntrada().compare(0, 6, "rotate")  == 0){
+        string name;
+        int i = 7;
+        string fl1, fl2, fl3, fl4;
+        //pegar o nome que foi digitado
+        while (ler.getEntrada().at(i) != ' ' ) {
+             name.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' ' ) {
+             fl1.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' ' ) {
+             fl2.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' ') {
+             fl3.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while ( i < ler.getEntrada().length()) {
+             fl4.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        // printf("%s %f %f %f %f\n", name.c_str(), num, num2, num3, num4);
+        for(int j = 0; j < objetoVetor.size(); j++){
+			if(strcmp(name.c_str(), objetoVetor[j]->nome.c_str()) == 0){
+				glm::mat4 model = glm::rotate( glm::mat4(1.0f), glm::radians(stof(fl1)) , glm::vec3(stof(fl2),stof(fl3),stof(fl4)) );
+				objetoVetor[j]->model = objetoVetor[j]->model * model;
+			}
+        }
+    }
 
     for(int i = 0; i < objetoVetor.size(); i++){
         glGenVertexArrays(1, static_cast<GLuint *>(&objetoVetor[i]->vao));
@@ -625,8 +663,8 @@ void OpenGLContext::finalize() const
 
 int main(int argc, char *argv[])
 {
-    OpenGLContext context{argc, argv};
     ler.ler();
+    OpenGLContext context{argc, argv};  
     while( ler.getEntrada().compare("quite") != 0){ //comparar se a entrada eh igual quite
         // leitura do comando
         //printf("oi%s\n", ler.getEntrada().c_str());
