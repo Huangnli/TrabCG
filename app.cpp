@@ -322,7 +322,7 @@ void OpenGLContext::initialize(){
         glm::mat4 projection = glm::mat4(1.0);
         projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
         //cor 
-        glm::vec3 cor = glm::vec3(1.0f,0.0f,1.0f);
+        glm::vec3 cor = glm::vec3(1.0f,1.0f,1.0f);
     
         objeto *aux = new objeto(name, vaoid, vboid, vertexData, model, view, projection, cor);
         objetoVetor.push_back(aux);
@@ -430,6 +430,41 @@ void OpenGLContext::initialize(){
 			}
 		}
     }
+    
+    //add color to objects
+    if(ler.getEntrada().compare(0, 5, "color")  == 0){
+        string name;
+        int i = 6;
+        string fl1, fl2, fl3;
+        //pegar o nome que foi digitado
+        while (ler.getEntrada().at(i) != ' ' ) {
+             name.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' ' ) {
+             fl1.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' ' ) {
+             fl2.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (i < ler.getEntrada().length()) {
+             fl3.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+                
+        // modifica a cor do objeto informado com 'name'
+        for(int j = 0; j < objetoVetor.size(); j++){
+			if(strcmp(name.c_str(), objetoVetor[j]->nome.c_str()) == 0){
+				glm::vec3 color = glm::vec3(stof(fl1), stof(fl2), stof(fl3));
+				objetoVetor[j]->outColor = color;
+			}
+        }
+    }
     //add rotacao
     if(ler.getEntrada().compare(0, 6, "rotate")  == 0){
         string name;
@@ -461,6 +496,7 @@ void OpenGLContext::initialize(){
             i++;
         }
         // printf("%s %f %f %f %f\n", name.c_str(), num, num2, num3, num4);
+        // modifica a matriz model do objeto informado com 'name'
         for(int j = 0; j < objetoVetor.size(); j++){
 			if(strcmp(name.c_str(), objetoVetor[j]->nome.c_str()) == 0){
 				glm::mat4 model = glm::rotate( glm::mat4(1.0f), glm::radians(stof(fl1)) , glm::vec3(stof(fl2),stof(fl3),stof(fl4)) );
@@ -491,7 +527,7 @@ void OpenGLContext::initialize(){
         vaoid++;
         vboid++;
     }
-  
+    //show axis
     if (ler.getEntrada().compare(0, 7, "axis_on") == 0){
         //criando shaders para axis
         createShaderAxis();
@@ -499,7 +535,7 @@ void OpenGLContext::initialize(){
         axis *aux = new axis(vaoidAxis, vboidAxis);
         axisVetor.push_back(aux);
     }
-
+    //hide axis
     if(ler.getEntrada().compare(0, 8, "axis_off")  == 0){
         //apagar o objeto
 		axisVetor.erase(axisVetor.begin());
@@ -554,8 +590,8 @@ void OpenGLContext::initialize(){
 
     }
 
-void OpenGLContext::rendering() const
-{
+void OpenGLContext::rendering() const{
+    
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     // Clear the colorbuffer
