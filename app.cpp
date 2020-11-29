@@ -296,7 +296,7 @@ void OpenGLContext::initialize(){
     glEnable(GL_DEPTH_TEST);
     // Set "clearing" or background color
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black and opaque
-
+    //add cubo
     if(ler.getEntrada().compare(0, 14, "add_shape cube")  == 0){
         //creating shaders
         createShaderObjects();
@@ -327,7 +327,7 @@ void OpenGLContext::initialize(){
         objeto *aux = new objeto(name, vaoid, vboid, vertexData, model, view, projection, cor);
         objetoVetor.push_back(aux);
     }
-
+    //add cone
     if(ler.getEntrada().compare(0, 14, "add_shape cone")  == 0){
         createShaderObjects();
 
@@ -357,7 +357,7 @@ void OpenGLContext::initialize(){
         objeto *aux = new objeto(name, vaoid, vboid, vertexData, model, view, projection, cor);
         objetoVetor.push_back(aux);
     }
-
+    //add torus
     if(ler.getEntrada().compare(0, 15, "add_shape torus")  == 0){
         createShaderObjects();
 
@@ -387,7 +387,7 @@ void OpenGLContext::initialize(){
         objeto *aux = new objeto(name, vaoid, vboid, vertexData, model, view, projection, cor);
         objetoVetor.push_back(aux);
     }
-
+    //add sphere
     if(ler.getEntrada().compare(0, 16, "add_shape sphere")  == 0){
         createShaderObjects();
         vector<glm::vec3> vertexData;
@@ -416,6 +416,7 @@ void OpenGLContext::initialize(){
         objeto *aux = new objeto(name, vaoid, vboid, vertexData, model, view, projection, cor);
         objetoVetor.push_back(aux);
     }
+    
     //pra remover os objetos
     if(ler.getEntrada().compare(0, 12, "remove_shape")  == 0){
         string name;
@@ -465,6 +466,7 @@ void OpenGLContext::initialize(){
 			}
         }
     }
+    
     //add rotacao
     if(ler.getEntrada().compare(0, 6, "rotate")  == 0){
         string name;
@@ -527,6 +529,7 @@ void OpenGLContext::initialize(){
         vaoid++;
         vboid++;
     }
+    
     //show axis
     if (ler.getEntrada().compare(0, 7, "axis_on") == 0){
         //criando shaders para axis
@@ -564,31 +567,87 @@ void OpenGLContext::initialize(){
         vboidAxis++;
     }
 
+    //add ponto de luz
+    if(ler.getEntrada().compare(0, 9, "add_light")  == 0){
+        if (lightVetor.size() > 10){
+            printf("número máximo de luzes atingido!\n");
+        }
+        else{
+            string name;
+            int i = 10;
+            string fl1, fl2, fl3;
+            //pegar o nome que foi digitado
+            while (ler.getEntrada().at(i) != ' ' ) {
+                name.push_back(ler.getEntrada().at(i));
+                i++;
+            }
+            i++;
+            while (ler.getEntrada().at(i) != ' ' ) {
+                fl1.push_back(ler.getEntrada().at(i));
+                i++;
+            }
+            i++;
+            while (ler.getEntrada().at(i) != ' ' ) {
+                fl2.push_back(ler.getEntrada().at(i));
+                i++;
+            }
+            i++;
+            while (i < ler.getEntrada().length()) {
+                fl3.push_back(ler.getEntrada().at(i));
+                i++;
+            }
+            glm::vec3 pos = glm::vec3(stof(fl1), stof(fl2), stof(fl3));
 
-    //código para fonte de luz
+            light *luz = new light(name, pos, vaoidLight, vboidLight);
+            lightVetor.push_back(luz);        
+        }
+    }
 
-        // glm::vec3 position = glm::vec3(1.0f, 0.0f, 0.0f);
-        // glm::vec3 color = glm::vec3(1.0f, 1.0f, 0.0f);
-        // light light(position, color);
-        // vector<glm::vec3> lightData;
-        // lightData.push_back(light.getPosition());
-        // lightData.push_back(light.getColor());
+    //pra remover a luz selecionada
+    if(ler.getEntrada().compare(0, 12, "remove_light")  == 0){
+        string name;
+        //pegar o nome que foi digitado
+        for (int i = 13; i < ler.getEntrada().length(); ++i) {
+            name.push_back(ler.getEntrada().at(i));
+        }
+        //remover a luz escolhida
+        for(int i = 0; i < lightVetor.size(); i++){
+			if(strcmp(name.c_str(), lightVetor[i]->nome.c_str()) == 0) {
+				lightVetor.erase(lightVetor.begin()+i);
+			}
+		}
+    }
 
-        
-        // glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-        // glBufferData(GL_ARRAY_BUFFER, lightData.size() * sizeof(glm::vec3), lightData.data(), GL_STATIC_DRAW);
+    //show lights    
+    if (ler.getEntrada().compare(0, 9, "lights_on") == 0){
+        //criando shaders para luzes
+        createShaderLight();
 
-        // //able the first buffer
-        // glEnableVertexAttribArray(0);
-        // glEnableVertexAttribArray(1);
+        for(int i = 0; i < lightVetor.size(); i++){
+            glGenVertexArrays(1, static_cast<GLuint *>(&lightVetor[i]->vao));
+            glBindVertexArray(lightVetor[i]->vao);
 
-        // //passando a localização dos atributos para o shader - 0= inicio do VBO
-        // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
-        // glBindAttribLocation(this->programLight, 0, "lightPosition");
-        // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
-        // glBindAttribLocation(this->programLight, 0, "outcolor");
+            glGenBuffers(1, static_cast<GLuint *>(&lightVetor[i]->vbo));
+            glBindBuffer(GL_ARRAY_BUFFER, lightVetor[i]->vbo);
+            glBufferData(GL_ARRAY_BUFFER, lightVetor[i]->lightBuffer.size() * sizeof(glm::vec3), lightVetor[i]->lightBuffer.data(), GL_STATIC_DRAW);
+            //able the first buffer
+            glEnableVertexAttribArray(0);
+            glEnableVertexAttribArray(1);
+
+            //passando a localização dos atributos para o shader - 0= inicio do VBO
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+            glBindAttribLocation(this->programLight, 0, "lightPosition"); //vertexPosition = name of attribute in shader
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+            glBindAttribLocation(this->programLight, 0, "lightColor"); //vertexPosition = name of attribute in shader
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            vaoidLight++;
+            vboidLight++;
+        }
 
     }
+}
 
 void OpenGLContext::rendering() const{
     
@@ -642,29 +701,27 @@ void OpenGLContext::rendering() const{
         glUseProgram(0);
     }
 
-    //desenhando fontes de luz
-    // for(int i = 0; i < lightVetor.size(); i++){        
-                
-    //     glUseProgram(this->programLight);
-    //     glBindVertexArray(lightVetor[i]->vao);
-    //     glBindBuffer(GL_ARRAY_BUFFER, lightVetor[i]->vbo);
+    if (ler.getEntrada().compare(0, 9, "lights_on") == 0){
 
-    //     glPointSize(10.0f);
-    //     glDrawArrays(GL_POINTS, 0, lightVetor[i]->lightBuffer.size()/2);
+        //desenhando fontes de luz
+        for (int i = 0; i < lightVetor.size(); i++){
 
-    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //     glBindVertexArray(0);
-    //     glUseProgram(0);
-    // }
+            glUseProgram(this->programLight);
+            glBindVertexArray(lightVetor[i]->vao);
+            glBindBuffer(GL_ARRAY_BUFFER, lightVetor[i]->vbo);
 
-    // glBindVertexArray(vao);
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    // glEnableVertexAttribArray(0);
-    // glEnableVertexAttribArray(1);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
-    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+            glPointSize(10.0f);
+            glDrawArrays(GL_POINTS, 0, lightVetor[i]->lightBuffer.size() / 2);
 
-
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            glUseProgram(0);
+        }
+    }
+    else if(ler.getEntrada().compare(0, 10, "lights_off") == 0){
+    }
+    
+    
     glutSwapBuffers(); //necessario para windows!
 }
 
