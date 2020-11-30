@@ -17,8 +17,10 @@ public:
     glm::vec3 lightPosition;
     glm::vec3 lightColor;
     vector<glm::vec3> lightBuffer;
+    glm::mat4 view;
+    glm::mat4 projection;
 
-    light(string name, glm::vec3 position, unsigned int idvao, unsigned int idvbo);
+    light(string name, glm::vec3 position, unsigned int idvao, unsigned int idvbo, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
     ~light();
 
     glm::vec3 getPosition();

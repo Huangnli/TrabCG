@@ -6,13 +6,14 @@
 
 using namespace std;
 
-light::light(string name, glm::vec3 position, unsigned int idvao, unsigned int idvbo)
-{
+light::light(string name, glm::vec3 position, unsigned int idvao, unsigned int idvbo, glm::mat4 viewMatrix, glm::mat4 projectionMatrix){
     nome = name;
     vao = idvao;
     vbo = idvbo;
     lightPosition = position;
     lightColor = glm::vec3(1.0f, 1.0f, 0.0f);
+    view = viewMatrix;
+    projection = projectionMatrix;
     setLightBuffer();
 }
 
