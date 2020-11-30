@@ -3,11 +3,13 @@
 in vec3 axisPosition;
 in vec3 axisColor;
 
+uniform mat4 view;
+uniform mat4 projection;
 out vec3 colorAxis;
 
 void main(){
   
-  gl_Position = vec4(axisPosition, 1.0);
+  gl_Position = projection * view * vec4(axisPosition, 1.0);
 
   colorAxis = axisColor;
 }

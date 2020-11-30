@@ -1,9 +1,10 @@
 #include "axis.h"
 
-axis::axis(unsigned int idvao, unsigned int idvbo){
-    
+axis::axis(unsigned int idvao, unsigned int idvbo, glm::mat4 viewMatrix, glm::mat4 projectionMatrix){   
     vao = idvao;
     vbo = idvbo;
+    view = viewMatrix;
+    projection = projectionMatrix;
     setColorAxis();
     setVertexLines();
     setBuffer();    
