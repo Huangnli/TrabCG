@@ -11,6 +11,7 @@
 #include "objeto.h"
 #include "axis.h"
 #include "light.h"
+#include "camera.h"
 
 #include <iostream>
 #include <cstdio>
@@ -25,6 +26,8 @@
 #include <glm/gtc/matrix_transform.hpp> //transformations
 #include <glm/trigonometric.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform2.hpp> //usar shear
 
 #include <GL/glew.h>
@@ -42,6 +45,9 @@ namespace
 vector<objeto*> objetoVetor;
 vector<axis*> axisVetor;
 vector<light*> lightVetor;
+camera *cam;
+glm::mat4 view;
+
 lerComando ler;
 int nVertices;
 unsigned int vboid = 1;
@@ -297,6 +303,91 @@ void OpenGLContext::initialize(){
     glEnable(GL_DEPTH_TEST);
     // Set "clearing" or background color
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black and opaque
+
+    //ajustando a camera (view matrix)
+    view = cam->getViewMatrix();   //inicialização    
+    
+    //ajustando a projeção
+    glm::mat4 projection = glm::mat4(1.0f);
+    projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
+    //projection = glm::frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.5f, 2.0f);
+
+    //define o lookAt
+    if (ler.getEntrada().compare(0, 6, "lookat") == 0){
+
+        int i = 7;
+        string fl1, fl2, fl3;
+        //pegar os floats
+        while (ler.getEntrada().at(i) != ' '){
+            fl1.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' '){
+            fl2.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (i < ler.getEntrada().length()){
+            fl3.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+
+        glm::vec3 vecLookAt = glm::vec3(stof(fl1), stof(fl2), stof(fl3));
+        cam->setLookat(vecLookAt);
+
+        //atualização para os objetos que serão desenhados após a mudança da camera
+        view = cam->getViewMatrix();    
+
+        //atualização para os objetos que já foram add à cena antes da mudança da camera
+        for(int j = 0; j < objetoVetor.size(); j++){
+				objetoVetor[j]->view = view;
+        }
+        for (int i = 0; i < axisVetor.size(); i++){
+            axisVetor[i]->view = view;
+        }
+        for (int i = 0; i < lightVetor.size(); i++){
+            lightVetor[i]->view = view;
+        }      
+    }
+
+    if (ler.getEntrada().compare(0, 3, "cam") == 0){
+        int i = 4;
+        string fl1, fl2, fl3;
+        //pegar os floats
+        while (ler.getEntrada().at(i) != ' ')  {
+            fl1.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (ler.getEntrada().at(i) != ' ') {
+            fl2.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        while (i < ler.getEntrada().length()) {
+            fl3.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+
+        glm::vec3 vecPos = glm::vec3(stof(fl1), stof(fl2), stof(fl3));
+        cam->setPosition(vecPos);
+
+        //atualização para os objetos que serão desenhados após a mudança da camera
+        view = cam->getViewMatrix();    
+
+        //atualização para os objetos que já foram add à cena antes da mudança da camera
+        for(int j = 0; j < objetoVetor.size(); j++){
+				objetoVetor[j]->view = view;
+        }
+        for (int i = 0; i < axisVetor.size(); i++){
+            axisVetor[i]->view = view;
+        }
+        for (int i = 0; i < lightVetor.size(); i++){
+            lightVetor[i]->view = view;
+        }        
+    }
+
     //add cubo
     if(ler.getEntrada().compare(0, 14, "add_shape cube")  == 0){
         //creating shaders
@@ -314,14 +405,9 @@ void OpenGLContext::initialize(){
         nVertices = vertexData.size()/2;
         //printf("%d %u %u\n", nVertices, vaoid, vboid);
         
-        //fazendo a transformação na model
+        //inicialização da model
         glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
-        //model = glm::rotate(model, 45.0f, glm::vec3(0.2f, 0.6f, 0.0f)); //para cone
-        //view
-        glm::mat4 view =glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        //ajustando a camera
-        glm::mat4 projection = glm::mat4(1.0);
-        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
+
         //cor 
         glm::vec3 cor = glm::vec3(1.0f,1.0f,1.0f);
     
@@ -344,14 +430,10 @@ void OpenGLContext::initialize(){
         nVertices = vertexData.size()/2;
         //printf("%d %u %u\n", nVertices, vaoid, vboid);
 
-        //fazendo a transformação na model
+        //inicialização da model
         glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
-        model = glm::rotate(model, 45.0f, glm::vec3(0.2f, 0.6f, 0.0f)); //para cone
-        //view
-        glm::mat4 view =glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        //ajustando a camera
-        glm::mat4 projection = glm::mat4(1.0);
-        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
+        //model = glm::rotate(model, 45.0f, glm::vec3(0.2f, 0.6f, 0.0f)); //para cone
+        
         //cor 
         glm::vec3 cor = glm::vec3(1.0f,1.0f,1.0f);
 
@@ -374,20 +456,17 @@ void OpenGLContext::initialize(){
         nVertices = vertexData.size()/2;
         //printf("%d %u %u\n", nVertices, vaoid, vboid);
 
-        //fazendo a transformação na model
+        //inicialização da model
         glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
-        model = glm::rotate(model, 45.0f, glm::vec3(0.2f, 0.6f, 0.0f)); //para cone
-        //view
-        glm::mat4 view =glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        //ajustando a camera
-        glm::mat4 projection = glm::mat4(1.0);
-        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
+        //model = glm::rotate(model, 45.0f, glm::vec3(0.2f, 0.6f, 0.0f)); //para cone
+       
         //cor 
         glm::vec3 cor = glm::vec3(1.0f,1.0f,1.0f);
 
         objeto *aux = new objeto(name, vaoid, vboid, vertexData, model, view, projection, cor);
         objetoVetor.push_back(aux);
     }
+
     //add sphere
     if(ler.getEntrada().compare(0, 16, "add_shape sphere")  == 0){
         createShaderObjects();
@@ -403,14 +482,9 @@ void OpenGLContext::initialize(){
         nVertices = vertexData.size()/2;
         //printf("%d %u %u\n", nVertices, vaoid, vboid);
 
-        //fazendo a transformação na model
+        //inicialização da model
         glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
-        model = glm::rotate(model, 45.0f, glm::vec3(0.2f, 0.6f, 0.0f)); //para cone
-        //view
-        glm::mat4 view =glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        //ajustando a camera
-        glm::mat4 projection = glm::mat4(1.0);
-        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
+        
         //cor 
         glm::vec3 cor = glm::vec3(1.0f,1.0f,1.0f);
 
@@ -627,6 +701,7 @@ void OpenGLContext::initialize(){
         }
     }
 
+    //init the objects
     for(int i = 0; i < objetoVetor.size(); i++){
         glGenVertexArrays(1, static_cast<GLuint *>(&objetoVetor[i]->vao));
         glBindVertexArray(objetoVetor[i]->vao);
@@ -655,15 +730,17 @@ void OpenGLContext::initialize(){
         //criando shaders para axis
         createShaderAxis();
 
-        axis *aux = new axis(vaoidAxis, vboidAxis);
+        axis *aux = new axis(vaoidAxis, vboidAxis, view, projection);
         axisVetor.push_back(aux);
     }
     //hide axis
     if(ler.getEntrada().compare(0, 8, "axis_off")  == 0){
-        //apagar o objeto
+        //apagar o eixo  
 		axisVetor.erase(axisVetor.begin());
+        
     }
-
+    
+    //init axis
     for(int i = 0; i < axisVetor.size(); i++){
         glGenVertexArrays(1, static_cast<GLuint *>(&axisVetor[i]->vao));
         glBindVertexArray(axisVetor[i]->vao);
@@ -718,7 +795,7 @@ void OpenGLContext::initialize(){
             }
             glm::vec3 pos = glm::vec3(stof(fl1), stof(fl2), stof(fl3));
 
-            light *luz = new light(name, pos, vaoidLight, vboidLight);
+            light *luz = new light(name, pos, vaoidLight, vboidLight, view, projection);
             lightVetor.push_back(luz);        
         }
     }
@@ -738,7 +815,7 @@ void OpenGLContext::initialize(){
 		}
     }
 
-    //show lights    
+    //init lights    
     if (ler.getEntrada().compare(0, 9, "lights_on") == 0){
         //criando shaders para luzes
         createShaderLight();
@@ -814,6 +891,14 @@ void OpenGLContext::rendering() const{
         glBindVertexArray(axisVetor[i]->vao);
         glBindBuffer(GL_ARRAY_BUFFER, axisVetor[i]->vbo);
 
+        //ajustando a view
+        int viewLoc = glGetUniformLocation(programAxis, "view");
+        glUniformMatrix4fv(viewLoc, 1, false, &axisVetor[i]->view[0][0]);
+
+        //ajustando a camera
+        int projLoc = glGetUniformLocation(programAxis, "projection");
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, &axisVetor[i]->projection[0][0]);
+
         glDrawArrays(GL_LINES, 0, axisVetor[i]->axisBuffer.size()/2);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -821,6 +906,7 @@ void OpenGLContext::rendering() const{
         glUseProgram(0);
     }
 
+    //show lights
     if (ler.getEntrada().compare(0, 9, "lights_on") == 0){
 
         //desenhando fontes de luz
@@ -829,6 +915,14 @@ void OpenGLContext::rendering() const{
             glUseProgram(this->programLight);
             glBindVertexArray(lightVetor[i]->vao);
             glBindBuffer(GL_ARRAY_BUFFER, lightVetor[i]->vbo);
+
+            //ajustando a view
+            int viewLoc = glGetUniformLocation(programLight, "view");
+            glUniformMatrix4fv(viewLoc, 1, false, &lightVetor[i]->view[0][0]);
+
+            //ajustando a camera
+            int projLoc = glGetUniformLocation(programLight, "projection");
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, &lightVetor[i]->projection[0][0]);
 
             glPointSize(10.0f);
             glDrawArrays(GL_POINTS, 0, lightVetor[i]->lightBuffer.size() / 2);
@@ -874,10 +968,12 @@ void OpenGLContext::finalize() const
     glUseProgram(0);
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
+
+    cam = new camera();
     ler.ler();
     OpenGLContext context{argc, argv};  
+    
     while( ler.getEntrada().compare("quite") != 0){ //comparar se a entrada eh igual quite
         // leitura do comando
         //printf("oi%s\n", ler.getEntrada().c_str());
