@@ -351,6 +351,7 @@ void OpenGLContext::initialize(){
         }      
     }
 
+    //configura posição da camera
     if (ler.getEntrada().compare(0, 3, "cam") == 0){
         int i = 4;
         string fl1, fl2, fl3;
@@ -414,6 +415,7 @@ void OpenGLContext::initialize(){
         objeto *aux = new objeto(name, vaoid, vboid, vertexData, model, view, projection, cor);
         objetoVetor.push_back(aux);
     }
+    
     //add cone
     if(ler.getEntrada().compare(0, 14, "add_shape cone")  == 0){
         createShaderObjects();
@@ -440,6 +442,7 @@ void OpenGLContext::initialize(){
         objeto *aux = new objeto(name, vaoid, vboid, vertexData, model, view, projection, cor);
         objetoVetor.push_back(aux);
     }
+    
     //add torus
     if(ler.getEntrada().compare(0, 15, "add_shape torus")  == 0){
         createShaderObjects();
@@ -817,6 +820,7 @@ void OpenGLContext::initialize(){
 
     //init lights    
     if (ler.getEntrada().compare(0, 9, "lights_on") == 0){
+
         //criando shaders para luzes
         createShaderLight();
 
@@ -844,6 +848,73 @@ void OpenGLContext::initialize(){
         }
 
     }
+
+
+    //add reflexao informada
+    if(ler.getEntrada().compare(0, 13, "reflection_on")  == 0){
+        string type;
+        int i = 14;
+        string fl1;
+        //pegar o nome que foi digitado
+        while (ler.getEntrada().at(i) != ' ' ) {
+             type.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+        i++;
+        
+        while (i < ler.getEntrada().length()) {
+             fl1.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+
+        // modifica os coeficientes de iluminação dos objetos conforme informado com 'type'
+        for(int j = 0; j < objetoVetor.size(); j++){
+				
+            if(strcmp(type.c_str(), "ambient") == 0){      
+				objetoVetor[j]->Ka = stof(fl1);           
+                
+			}
+            else if (strcmp(type.c_str(), "diffuse") == 0){
+                objetoVetor[j]->Kd = stof(fl1);
+            }
+
+            else if (strcmp(type.c_str(), "specular") == 0){
+                objetoVetor[j]->Ks = stof(fl1);
+            }
+
+        }
+
+    }
+
+    //desabilita reflexao informada
+    if (ler.getEntrada().compare(0, 14, "reflection_off") == 0){
+        string type;
+        int i = 15;
+
+        //pegar o nome que foi digitado
+        while (i < ler.getEntrada().length()){
+            type.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+       
+        //zera os coeficientes de iluminação dos objetos conforme o 'type'
+        for (int j = 0; j < objetoVetor.size(); j++){
+
+            if (strcmp(type.c_str(), "ambient") == 0){
+                objetoVetor[j]->Ka = 0.0f;
+            }
+            else if (strcmp(type.c_str(), "diffuse") == 0){
+                objetoVetor[j]->Kd = 0.0f;
+            }
+
+            else if (strcmp(type.c_str(), "specular") == 0){
+                objetoVetor[j]->Ks = 0.0f;
+            }
+
+        }
+
+    }
+
 }
 
 void OpenGLContext::rendering() const{
@@ -876,6 +947,25 @@ void OpenGLContext::rendering() const{
         //setting up color from shader by uniform
         int colorLoc = glGetUniformLocation(programId, "outColor");
         glUniform3fv(colorLoc, 1, &objetoVetor[i]->outColor[0]);
+
+        // if (!lightVetor.empty()){
+        //  enviar lightVetor pro shader
+        //     /* code */
+        // }        
+
+        //passando os coeficientes de iluminação para o fragment shader
+        int kaLoc = glGetUniformLocation(programId, "Ka");
+        glUniform1f(kaLoc, objetoVetor[i]->Ka);
+
+        int kdLoc = glGetUniformLocation(programId, "Kd");
+        glUniform1f(kdLoc, objetoVetor[i]->Kd);
+
+        int ksLoc = glGetUniformLocation(programId, "Ks");
+        glUniform1f(ksLoc, objetoVetor[i]->Ks);
+
+        //passando a posição da camera para o fragment shader
+        int viewerLoc = glGetUniformLocation(programId, "viewerPosition");
+        glUniform3fv(viewerLoc, 1, &cam->position[0]);
 
         glDrawArrays(GL_TRIANGLES, 0, objetoVetor[i]->vertexBuffer.size()/2);
 
