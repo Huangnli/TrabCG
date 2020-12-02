@@ -57,6 +57,8 @@ unsigned int vaoidAxis = 1;
 unsigned int vboidLight = 1;
 unsigned int vaoidLight = 1;
 
+int wire = 0;
+
 OpenGLContext::OpenGLContext(int argc, char *argv[]){
     glutInit(&argc, argv); // Initialize GLUT
 
@@ -915,6 +917,14 @@ void OpenGLContext::initialize(){
 
     }
 
+    //ligar wire
+    if(ler.getEntrada().compare(0, 7, "wire_on") == 0) {
+        wire = 1;
+    }
+    //desligar wire
+    if(ler.getEntrada().compare(0, 8, "wire_off") == 0) {
+        wire = 0;
+    }
 }
 
 void OpenGLContext::rendering() const{
@@ -967,7 +977,13 @@ void OpenGLContext::rendering() const{
         int viewerLoc = glGetUniformLocation(programId, "viewerPosition");
         glUniform3fv(viewerLoc, 1, &cam->position[0]);
 
-        glDrawArrays(GL_TRIANGLES, 0, objetoVetor[i]->vertexBuffer.size()/2);
+        //verificar se eh pra desenhar com wire ou normal
+        if(wire == 0){
+            glDrawArrays(GL_TRIANGLES, 0, objetoVetor[i]->vertexBuffer.size()/2);
+        }
+        else {
+            glDrawArrays(GL_LINE_STRIP, 0, objetoVetor[i]->vertexBuffer.size()/2);
+        }
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
