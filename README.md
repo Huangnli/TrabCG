@@ -7,7 +7,6 @@
 * - [x] Adicionar e remover (uma ou mais) formas: O Cubo, esfera (icosphere), cone e torus;
 * - [ ] Habilitar e desabilitar modelos de iluminação: O Especular, difusa e ambiente;
 * - [x] Adicionar e remover fontes de luz (pontuais);
-* - [ ] Definir tipo de projeção e seus parâmetros associados: O Ortográfica ou perspectiva;
 * - [ ] Câmera: o Definir vetor de visão e posição da câmera;
 * - [x] Transformar as formas: O Translação, Rotação, Escala e Shear.
 * - [x] Mostrar/Esconder os eixos;
