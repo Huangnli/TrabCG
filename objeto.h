@@ -7,12 +7,13 @@
 
 using namespace std;
 
-class objeto
-{
+class objeto{
+
 public:
     objeto(string name, unsigned int idvao, unsigned int idvbo , vector<glm::vec3> dadosDoObjeto, glm::mat4 matrizmodel, 
             glm::mat4 matrizview, glm::mat4 matrizprojection, glm::vec3 cor);
     ~objeto();
+
 
     string nome;
     unsigned int vao;
@@ -22,5 +23,7 @@ public:
     glm::mat4 view;
     glm::mat4 projection;
     glm::vec3 outColor;
+
+    float Ka, Kd, Ks;
 
 };
