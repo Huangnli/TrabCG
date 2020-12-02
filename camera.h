@@ -18,6 +18,7 @@ class camera{
         glm::vec3 getInitialLookat();
         glm::vec3 getInitialUp();
         glm::mat4 getViewMatrix();
+        glm::vec3 getCurrentPosition();
 
         void setLookat(glm::vec3 vecLookAt);
         void setPosition(glm::vec3 vecPos);
@@ -54,4 +55,8 @@ void camera::setLookat(glm::vec3 vecLookAt){
 
 void camera::setPosition(glm::vec3 vecPos){
     position = vecPos;
+}
+
+glm::vec3 camera::getCurrentPosition(){
+    return position;
 }
