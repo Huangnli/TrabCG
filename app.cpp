@@ -57,6 +57,10 @@ unsigned int vaoidAxis = 1;
 unsigned int vboidLight = 1;
 unsigned int vaoidLight = 1;
 
+int flat_on = 0;
+int smooth_on = 0;
+int phong_on = 0;
+int lights_on;
 int wire = 0;
 
 OpenGLContext::OpenGLContext(int argc, char *argv[]){
@@ -88,7 +92,7 @@ OpenGLContext::OpenGLContext(int argc, char *argv[]){
 
 OpenGLContext::~OpenGLContext()
 {
-    this->finalize();
+    //this->finalize();
 }
 
 void OpenGLContext::glutReshapeCallback(int width, int height)
@@ -208,7 +212,17 @@ unsigned int OpenGLContext::linkShaderProgram(unsigned int vertexShaderId, unsig
     return shaderProgramId;
 }
 
-void OpenGLContext::createShaderObjects(){
+void OpenGLContext::createShadersNone(){
+
+    // Create and compile our GLSL program from the shaders
+    GLint vertexShaderId = this->loadAndCompileShader("shader130/none.vp",
+                                                      GL_VERTEX_SHADER);
+    GLint fragmentShaderId = this->loadAndCompileShader("shader130/none.fp",
+                                                        GL_FRAGMENT_SHADER);
+    this->programNone = this->linkShaderProgram(vertexShaderId, fragmentShaderId);
+}
+
+void OpenGLContext::createShadersFlat(){
 
     // Create and compile our GLSL program from the shaders
     GLint vertexShaderId = this->loadAndCompileShader("shader130/objeto.vp",
@@ -218,7 +232,27 @@ void OpenGLContext::createShaderObjects(){
     this->programId = this->linkShaderProgram(vertexShaderId, fragmentShaderId);
 }
 
-void OpenGLContext::createShaderAxis(){
+void OpenGLContext::createShadersSmooth(){
+
+    // Create and compile our GLSL program from the shaders
+    GLint vertexShaderId = this->loadAndCompileShader("shader130/smooth.vp",
+                                                      GL_VERTEX_SHADER);
+    GLint fragmentShaderId = this->loadAndCompileShader("shader130/smooth.fp",
+                                                        GL_FRAGMENT_SHADER);
+    this->programSmooth = this->linkShaderProgram(vertexShaderId, fragmentShaderId);
+}
+
+void OpenGLContext::createShadersPhong(){
+
+    // Create and compile our GLSL program from the shaders
+    GLint vertexShaderId = this->loadAndCompileShader("shader130/phong.vp",
+                                                      GL_VERTEX_SHADER);
+    GLint fragmentShaderId = this->loadAndCompileShader("shader130/phong.fp",
+                                                        GL_FRAGMENT_SHADER);
+    this->programPhong = this->linkShaderProgram(vertexShaderId, fragmentShaderId);
+}
+
+void OpenGLContext::createShadersAxis(){
     GLint vertexShaderAxisId = this->loadAndCompileShader("shader130/axis.vp",
                                                       GL_VERTEX_SHADER);
     GLint fragmentShaderAxisId = this->loadAndCompileShader("shader130/axis.fp",
@@ -226,7 +260,7 @@ void OpenGLContext::createShaderAxis(){
     this->programAxis = this->linkShaderProgram(vertexShaderAxisId, fragmentShaderAxisId);
 }
 
-void OpenGLContext::createShaderLight(){
+void OpenGLContext::createShadersLight(){
     GLint lightVShaderId = this->loadAndCompileShader("shader130/light.vp",
                                                           GL_VERTEX_SHADER);
     GLint lightFShaderId = this->loadAndCompileShader("shader130/light.fp",
@@ -309,6 +343,8 @@ void OpenGLContext::initialize(){
     //ajustando a camera (view matrix)
     view = cam->getViewMatrix();   //inicialização    
     
+    createShadersNone();
+
     //ajustando a projeção
     glm::mat4 projection = glm::mat4(1.0f);
     projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
@@ -394,7 +430,7 @@ void OpenGLContext::initialize(){
     //add cubo
     if(ler.getEntrada().compare(0, 14, "add_shape cube")  == 0){
         //creating shaders
-        createShaderObjects();
+        
 
         vector<glm::vec3> vertexData;
         string name;
@@ -420,7 +456,7 @@ void OpenGLContext::initialize(){
     
     //add cone
     if(ler.getEntrada().compare(0, 14, "add_shape cone")  == 0){
-        createShaderObjects();
+        
 
         vector<glm::vec3> vertexData;
         string name;
@@ -447,7 +483,7 @@ void OpenGLContext::initialize(){
     
     //add torus
     if(ler.getEntrada().compare(0, 15, "add_shape torus")  == 0){
-        createShaderObjects();
+        
 
         vector<glm::vec3> vertexData;
         string name;
@@ -474,7 +510,7 @@ void OpenGLContext::initialize(){
 
     //add sphere
     if(ler.getEntrada().compare(0, 16, "add_shape sphere")  == 0){
-        createShaderObjects();
+      
         vector<glm::vec3> vertexData;
         string name;
         // printf("%s\n", ler.getEntrada().c_str());
@@ -706,38 +742,15 @@ void OpenGLContext::initialize(){
         }
     }
 
-    //init the objects
-    for(int i = 0; i < objetoVetor.size(); i++){
-        glGenVertexArrays(1, static_cast<GLuint *>(&objetoVetor[i]->vao));
-        glBindVertexArray(objetoVetor[i]->vao);
-
-        glGenBuffers(1, static_cast<GLuint *>(&objetoVetor[i]->vbo));
-        glBindBuffer(GL_ARRAY_BUFFER, objetoVetor[i]->vbo);
-        glBufferData(GL_ARRAY_BUFFER, objetoVetor[i]->vertexBuffer.size() * sizeof(glm::vec3), objetoVetor[i]->vertexBuffer.data(), GL_STATIC_DRAW);
-        //able the first buffer
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-
-        //passando a localização dos atributos para o shader - 0= inicio do VBO
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
-        glBindAttribLocation(this->programId, 0, "vertexPosition"); //vertexPosition = name of attribute in shader
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
-        glBindAttribLocation(this->programId, 0, "vertexNormal"); //vertexPosition = name of attribute in shader
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        vaoid++;
-        vboid++;
-    }
-    
     //show axis
     if (ler.getEntrada().compare(0, 7, "axis_on") == 0){
         //criando shaders para axis
-        createShaderAxis();
+        createShadersAxis();
 
         axis *aux = new axis(vaoidAxis, vboidAxis, view, projection);
         axisVetor.push_back(aux);
     }
+    
     //hide axis
     if(ler.getEntrada().compare(0, 8, "axis_off")  == 0){
         //apagar o eixo  
@@ -768,10 +781,14 @@ void OpenGLContext::initialize(){
         vaoidAxis++;
         vboidAxis++;
     }
-
+    
     //add ponto de luz
     if(ler.getEntrada().compare(0, 9, "add_light")  == 0){
-        if (lightVetor.size() > 10){
+        //createShadersFlat();
+        //createShadersSmooth();
+        //createShadersPhong();
+
+        if (lightVetor.size() == 10){
             printf("número máximo de luzes atingido!\n");
         }
         else{
@@ -801,7 +818,10 @@ void OpenGLContext::initialize(){
             glm::vec3 pos = glm::vec3(stof(fl1), stof(fl2), stof(fl3));
 
             light *luz = new light(name, pos, vaoidLight, vboidLight, view, projection);
-            lightVetor.push_back(luz);        
+            lightVetor.push_back(luz);
+
+            // flat_on = 1;
+            // smooth_on = 1;     
         }
     }
 
@@ -820,11 +840,12 @@ void OpenGLContext::initialize(){
 		}
     }
 
+    
     //init lights    
     if (ler.getEntrada().compare(0, 9, "lights_on") == 0){
-
+        lights_on = 1;
         //criando shaders para luzes
-        createShaderLight();
+        createShadersLight();
 
         for(int i = 0; i < lightVetor.size(); i++){
             glGenVertexArrays(1, static_cast<GLuint *>(&lightVetor[i]->vao));
@@ -833,6 +854,8 @@ void OpenGLContext::initialize(){
             glGenBuffers(1, static_cast<GLuint *>(&lightVetor[i]->vbo));
             glBindBuffer(GL_ARRAY_BUFFER, lightVetor[i]->vbo);
             glBufferData(GL_ARRAY_BUFFER, lightVetor[i]->lightBuffer.size() * sizeof(glm::vec3), lightVetor[i]->lightBuffer.data(), GL_STATIC_DRAW);
+            
+            
             //able the first buffer
             glEnableVertexAttribArray(0);
             glEnableVertexAttribArray(1);
@@ -843,6 +866,7 @@ void OpenGLContext::initialize(){
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
             glBindAttribLocation(this->programLight, 0, "lightColor"); //vertexPosition = name of attribute in shader
 
+
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
             vaoidLight++;
@@ -850,6 +874,117 @@ void OpenGLContext::initialize(){
         }
 
     }
+    
+    //turns off pointLights
+    if(ler.getEntrada().compare(0, 10, "lights_off") == 0){
+        lights_on = 0;
+    }
+
+    //selecionando os shadings
+    if (ler.getEntrada().compare(0, 7, "shading") == 0){
+        string type;
+
+        int i = 8;
+
+        //pegar o nome que foi digitado
+        while (i < ler.getEntrada().length()){
+            type.push_back(ler.getEntrada().at(i));
+            i++;
+        }
+       
+        //seleciona o tipo de shading conforme o 'type'
+        if (strcmp(type.c_str(), "flat") == 0){
+            flat_on = 1;
+            smooth_on = 0;
+            phong_on = 0;
+            createShadersFlat();
+        }
+        else if (strcmp(type.c_str(), "smooth") == 0){
+            smooth_on = 1;
+            flat_on = 0;
+            phong_on = 0;
+            createShadersSmooth();
+        }
+
+        else if (strcmp(type.c_str(), "phong") == 0){
+            phong_on = 1;
+            flat_on = 0;
+            smooth_on = 0;
+            
+        }
+        else{   //none padrão
+            flat_on = 0;
+            smooth_on = 0;
+            phong_on = 0;
+        }          
+
+    }
+    
+        if (flat_on == 1){
+            createShadersFlat();
+        }
+        if (smooth_on == 1){
+            createShadersSmooth();
+        }
+        if(phong_on == 1){
+            createShadersPhong();
+        }
+        if (lights_on == 1){
+            createShadersLight();
+        }
+    
+
+    //init the objects
+    for(int i = 0; i < objetoVetor.size(); i++){
+        glGenVertexArrays(1, static_cast<GLuint *>(&objetoVetor[i]->vao));
+        glBindVertexArray(objetoVetor[i]->vao);
+
+        glGenBuffers(1, static_cast<GLuint *>(&objetoVetor[i]->vbo));
+        glBindBuffer(GL_ARRAY_BUFFER, objetoVetor[i]->vbo);
+        glBufferData(GL_ARRAY_BUFFER, objetoVetor[i]->vertexBuffer.size() * sizeof(glm::vec3), objetoVetor[i]->vertexBuffer.data(), GL_STATIC_DRAW);
+        //able the first buffer
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+
+        //passando a localização dos atributos para os shaders de acordo com o shading
+        if(flat_on == 1){
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+            glBindAttribLocation(this->programId, 0, "vertexPosition"); //vertexPosition = name of attribute in shader
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+            glBindAttribLocation(this->programId, 0, "vertexNormal"); 
+
+        }
+        else if (smooth_on == 1){
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+            glBindAttribLocation(this->programSmooth, 0, "vertexPosition"); 
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+            glBindAttribLocation(this->programSmooth, 0, "vertexNormal"); 
+        }
+        else if (phong_on == 1){
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+            glBindAttribLocation(this->programPhong, 0, "vertexPosition");
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+            glBindAttribLocation(this->programPhong, 0, "vertexNormal");
+        }
+        else{   //shader none - passamos apenas os vértices e a cor por uniforme no rendering
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+            glBindAttribLocation(this->programNone, 0, "vertexPosition");
+        }
+        
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        vaoid++;
+        vboid++;
+    }
+
+    
+
 
 
     //add reflexao informada
@@ -917,6 +1052,9 @@ void OpenGLContext::initialize(){
 
     }
 
+    
+    
+    
     //ligar wire
     if(ler.getEntrada().compare(0, 7, "wire_on") == 0) {
         wire = 1;
@@ -936,54 +1074,98 @@ void OpenGLContext::rendering() const{
 
     //desenhando formas
     for(int i = 0; i < objetoVetor.size(); i++){
-        
         //printf("%d\n", objetoVetor[i]->vertexBuffer.size()/2);
-        glUseProgram(this->programId);
-        glBindVertexArray(objetoVetor[i]->vao);
-        glBindBuffer(GL_ARRAY_BUFFER, objetoVetor[i]->vbo);
 
-        //model
-        int modelLoc = glGetUniformLocation(programId, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &objetoVetor[i]->model[0][0]);
+        if (flat_on == 1 /* || smooth_on == 1 || phong_on == 1 */){
+                    
+            glUseProgram(this->programId);
+            glBindVertexArray(objetoVetor[i]->vao);
+            glBindBuffer(GL_ARRAY_BUFFER, objetoVetor[i]->vbo);
 
-        //view
-        int viewLoc = glGetUniformLocation(programId, "view");
-	    glUniformMatrix4fv(viewLoc, 1, false, &objetoVetor[i]->view[0][0]);
+            //model
+            int modelLoc = glGetUniformLocation(programId, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &objetoVetor[i]->model[0][0]);
 
-        //ajustando a camera
-        int projLoc = glGetUniformLocation(programId, "projection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, &objetoVetor[i]->projection[0][0]);
+            //view
+            int viewLoc = glGetUniformLocation(programId, "view");
+            glUniformMatrix4fv(viewLoc, 1, false, &objetoVetor[i]->view[0][0]);
 
-        //setting up color from shader by uniform
-        int colorLoc = glGetUniformLocation(programId, "outColor");
-        glUniform3fv(colorLoc, 1, &objetoVetor[i]->outColor[0]);
+            //ajustando a camera
+            int projLoc = glGetUniformLocation(programId, "projection");
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, &objetoVetor[i]->projection[0][0]);
 
-        // if (!lightVetor.empty()){
-        //  enviar lightVetor pro shader
-        //     /* code */
-        // }        
+            //setting up color from shader by uniform
+            int colorLoc = glGetUniformLocation(programId, "outColor");
+            glUniform3fv(colorLoc, 1, &objetoVetor[i]->outColor[0]);
 
-        //passando os coeficientes de iluminação para o fragment shader
-        int kaLoc = glGetUniformLocation(programId, "Ka");
-        glUniform1f(kaLoc, objetoVetor[i]->Ka);
+            //passando os coeficientes de iluminação para o fragment shader
+            int kaLoc = glGetUniformLocation(programId, "Ka");
+            glUniform1f(kaLoc, objetoVetor[i]->Ka);
 
-        int kdLoc = glGetUniformLocation(programId, "Kd");
-        glUniform1f(kdLoc, objetoVetor[i]->Kd);
+            int kdLoc = glGetUniformLocation(programId, "Kd");
+            glUniform1f(kdLoc, objetoVetor[i]->Kd);
 
-        int ksLoc = glGetUniformLocation(programId, "Ks");
-        glUniform1f(ksLoc, objetoVetor[i]->Ks);
+            int ksLoc = glGetUniformLocation(programId, "Ks");
+            glUniform1f(ksLoc, objetoVetor[i]->Ks);
 
-        //passando a posição da camera para o fragment shader
-        int viewerLoc = glGetUniformLocation(programId, "viewerPosition");
-        glUniform3fv(viewerLoc, 1, &cam->position[0]);
+            //passando a posição da camera para o fragment shader
+            int viewerLoc = glGetUniformLocation(programId, "viewerPosition");
+            glUniform3f(viewerLoc, -1.0f, 1.0f, 1.0f);
+            //glUniform3fv(viewerLoc, 1, &cam->position[0]);
+        
 
-        //verificar se eh pra desenhar com wire ou normal
-        if(wire == 0){
-            glDrawArrays(GL_TRIANGLES, 0, objetoVetor[i]->vertexBuffer.size()/2);
+            //verificar se há luzes na cena - passar o vetor de luzes
+            if (!lightVetor.empty()){
+
+                int n = lightVetor.size();
+                glUniform1i(glGetUniformLocation(programId, "nLuzes"), n);
+
+                vector<glm::vec3> lights;
+                for (int j = 0; j < n; j++){
+                    //printf("entrou no for\n");
+                    lights.push_back(lightVetor[j]->lightPosition);
+                }
+                //printf("saiu do for\n");
+                //enviando a posição da luz para os shaders dos objetos
+                int lightLoc = glGetUniformLocation(programId, "lights");
+                glUniform3fv(lightLoc, n, &lights[0][0]);
+                    
+            }        
+                
         }
-        else {
-            glDrawArrays(GL_LINE_STRIP, 0, objetoVetor[i]->vertexBuffer.size()/2);
+                        
+        else{   //ativa o shading None - padrão
+                    
+            glUseProgram(this->programNone);
+            glBindVertexArray(objetoVetor[i]->vao);
+            glBindBuffer(GL_ARRAY_BUFFER, objetoVetor[i]->vbo);
+
+            //model
+            int modelLoc = glGetUniformLocation(programNone, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &objetoVetor[i]->model[0][0]);
+
+            //view
+            int viewLoc = glGetUniformLocation(programNone, "view");
+            glUniformMatrix4fv(viewLoc, 1, false, &objetoVetor[i]->view[0][0]);
+
+            //ajustando a camera
+            int projLoc = glGetUniformLocation(programNone, "projection");
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, &objetoVetor[i]->projection[0][0]);
+
+            //setting up color from shader by uniform
+            int colorLoc = glGetUniformLocation(programNone, "outColor");
+            glUniform3fv(colorLoc, 1, &objetoVetor[i]->outColor[0]);
+
         }
+            //verificar se eh pra desenhar com wire ou normal
+            if (wire == 0)
+                glDrawArrays(GL_TRIANGLES, 0, objetoVetor[i]->vertexBuffer.size() / 2);
+            else
+                glDrawArrays(GL_LINE_STRIP, 0, objetoVetor[i]->vertexBuffer.size() / 2);
+
+         
+        
+        
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -1013,7 +1195,7 @@ void OpenGLContext::rendering() const{
     }
 
     //show lights
-    if (ler.getEntrada().compare(0, 9, "lights_on") == 0){
+    if (lights_on == 1){
 
         //desenhando fontes de luz
         for (int i = 0; i < lightVetor.size(); i++){
@@ -1037,8 +1219,7 @@ void OpenGLContext::rendering() const{
             glBindVertexArray(0);
             glUseProgram(0);
         }
-    }
-    else if(ler.getEntrada().compare(0, 10, "lights_off") == 0){
+
     }
     
     
@@ -1066,11 +1247,27 @@ void OpenGLContext::runLoop() const
     
 }
 
-void OpenGLContext::finalize() const
-{
+void OpenGLContext::finalize() const{
     // Properly de-allocate all resources once they've outlived their purpose
+
     glDisableVertexAttribArray(0);
-    glDeleteBuffers(1, (GLuint *)(&(this->vbo)));
+    glDisableVertexAttribArray(1);
+
+    for (int i = 0; i < objetoVetor.size(); i++){
+        glDeleteBuffers(1, (GLuint *)(&(objetoVetor[i]->vbo)));
+        glDeleteVertexArrays(1, &(objetoVetor[i]->vao));
+    }
+
+    for (int i = 0; i < lightVetor.size(); i++){   
+        glDeleteBuffers(1, (GLuint *)(&(lightVetor[i]->vbo)));
+        glDeleteVertexArrays(1, &(lightVetor[i]->vao));
+    }
+
+    for (int i = 0; i < axisVetor.size(); i++){  
+        glDeleteBuffers(1, (GLuint *)(&(axisVetor[i]->vbo)));
+        glDeleteVertexArrays(1, &(axisVetor[i]->vao));
+    }     
+    
     glUseProgram(0);
 }
 
@@ -1080,7 +1277,7 @@ int main(int argc, char *argv[]){
     ler.ler();
     OpenGLContext context{argc, argv};  
     
-    while( ler.getEntrada().compare("quite") != 0){ //comparar se a entrada eh igual quite
+    while( ler.getEntrada().compare("quit") != 0){ //comparar se a entrada eh igual quite
         // leitura do comando
         //printf("oi%s\n", ler.getEntrada().c_str());
         
@@ -1093,6 +1290,21 @@ int main(int argc, char *argv[]){
     }
     ler.deleteEntrada();
     context.printVersion();
+
+    context.finalize();
+
+    for (int i = 0; i < objetoVetor.size(); i++) {
+        delete objetoVetor[i];
+    }
+    for (int i = 0; i < lightVetor.size(); i++) {
+        delete lightVetor[i];
+    }
+    for (int i = 0; i < axisVetor.size(); i++) {
+        delete axisVetor[i];
+    }
+    delete cam;
+
+       
     //context.runLoop();
     return 0;
 }
