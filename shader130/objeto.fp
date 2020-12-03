@@ -1,7 +1,7 @@
 #version 130
-//out vec3 color;                   //cor do objeto
 
-//uniform vetorLight[i]->lightPosition;
+uniform int nLuzes;
+uniform vec3 lights[10];
 
 //uniform vec3 lightColor;          //for ambient
 uniform float Ka;
@@ -17,32 +17,49 @@ uniform float Ks;
 uniform vec3 outColor;              //for resulting light
 out vec4 fragColor;                 //fragmento de saída com as cores com iluminação
 
+vec3 calcIntensityLight(vec3 light, vec3 norm, vec3 fragPos, vec3 viewDir);
+
 
 void main(){
-  vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);  
+  vec3 lightColor = vec3(1.0f, 1.0f, 1.0f); 
+  
+  vec3 norm = normalize(normal);
+  vec3 viewDirection = normalize(viewerPosition - fragPosition);       //vector V
 
-  //ambient calculating
+  //ambient calc
   vec3 ambient = Ka*lightColor;
 
-  //diffuse calculating
-  vec3 norm = normalize(normal);
-  vec3 lightDirection = normalize(lightPosition - fragPosition);    //vector L
-  float diff = max(dot(norm, lightDirection), 0.0f);
-  vec3 diffuse = Kd * diff * lightColor;
-
-  //specular calculating
-  vec3 vDirection = normalize(viewerPosition - fragPosition);       //vector V
-  vec3 reflection = reflect(-lightDirection, norm);                 //vector R
-  float specComp = pow(max(dot(vDirection, reflection), 0.0f), 32);
-  vec3 specular = Ks * specComp * lightColor;                       //Is
-
+  vec3 finalResult = ambient;
+  
+  for(int i = 0; i < nLuzes; i++){
+      finalResult += calcIntensityLight(lights[i], norm, fragPosition, viewDirection);
+  }
 
   //resulting light
-  vec3 result = (ambient + diffuse + specular) * outColor;
-  fragColor = vec4(result, 1.0f);
+  finalResult *= outColor;
+  fragColor = vec4(finalResult, 1.0f);
 
-  //vec3 result = ambient * outColor;
-  //vec3 result = (ambient + diffuse) * outColor;
-  //fragColor = vec4(outColor, 1.0f);
-  //color = outColor;
+}
+
+//calcula a intensidade pontual de uma fonte de luz
+vec3 calcIntensityLight(vec3 light, vec3 norm, vec3 fragPos, vec3 viewDir){
+    
+    //diffuse calc
+    vec3 lightDir = normalize(light - fragPos);  
+    float diff = max(dot(norm, lightDir), 0.0f);
+
+    //specular calc
+    vec3 reflection = reflect(-lightDir, norm);
+    float spec = pow(max(dot(viewDir, reflection), 0.0f), 32);
+
+    //attenuation calc
+    float distance = length(lightPosition - fragPosition);
+    float fatt = 1/(1 + distance + 0.25*(pow(distance, 2) ) );
+
+    //combinação das reflexoes para uma fonte - ambiente nao entra
+    vec3 diffuse = Kd * diff * vec3(1.0f, 1.0f, 1.0f);
+    vec3 specular = Ks * spec * vec3(1.0f, 1.0f, 1.0f);
+
+    return fatt*(diffuse + specular);
+
 }
