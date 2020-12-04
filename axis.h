@@ -21,6 +21,7 @@ public:
     glm::mat4 view;
     glm::mat4 projection;
 
+    axis();
     axis(unsigned int idvao, unsigned int idvbo, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
     ~axis();
 

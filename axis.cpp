@@ -10,6 +10,9 @@ axis::axis(unsigned int idvao, unsigned int idvbo, glm::mat4 viewMatrix, glm::ma
     setBuffer();    
 }
 
+axis::axis(){
+}
+
 axis::~axis(){
 }
 
