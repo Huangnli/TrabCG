@@ -3,7 +3,7 @@
 in vec3 vertexPosition;
 in vec3 vertexNormal;
 
-out vec3 normal;
+flat out vec3 normal;
 out vec3 fragPosition;
 
 uniform mat4 model;
@@ -12,9 +12,13 @@ uniform mat4 projection;
 
 void main(){
   gl_Position = projection*view*model * vec4(vertexPosition, 1.0);
-  //gl_Position = projection*model * vec4(vertexPosition, 1.0);
-  //fragPosition = vertexPosition;
+ 
   fragPosition = vec3(model*vec4(vertexPosition, 1.0));
+  
+  //para casos em que houver escala, as normais devem ser recalculadas
+  //normal = mat3(transpose(inverse(model))) * vertexNormal;
+
   normal = vertexNormal;
+
 }
 

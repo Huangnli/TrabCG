@@ -6,7 +6,7 @@ uniform vec3 lights[10];
 //uniform vec3 lightColor;          //for ambient
 uniform float Ka;
 
-in vec3 normal;                     //for diffuse
+flat in vec3 normal;                     //for diffuse
 in vec3 fragPosition;
 uniform float Kd;
 uniform vec3 lightPosition;
