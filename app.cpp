@@ -16,7 +16,6 @@
 #include <iostream>
 #include <cstdio>
 #include <fstream>
-#include <math.h>
 #include <stdexcept>
 
 #include <glm/glm.hpp>
@@ -92,12 +91,11 @@ OpenGLContext::OpenGLContext(int argc, char *argv[]){
 
     currentInstance = this;
 
-    //this->initialize();
 }
 
 OpenGLContext::~OpenGLContext()
 {
-    //this->finalize();
+
 }
 
 void OpenGLContext::glutReshapeCallback(int width, int height)
@@ -1343,13 +1341,6 @@ void OpenGLContext::printVersion() const
               << "OpenGLSL Version : " << glslVersion << std::endl;
 }
 
-void OpenGLContext::runLoop() const
-{
-    this->rendering();
-    glutMainLoop();
-    
-}
-
 void OpenGLContext::finalize() const{
     // Properly de-allocate all resources once they've outlived their purpose
 
@@ -1371,31 +1362,6 @@ void OpenGLContext::finalize() const{
         
     
     glUseProgram(0);
-}
-
-int main(int argc, char *argv[]){
-
-    cam = new camera();
-    //axisScene = new axis();
-
-    ler.ler();
-    OpenGLContext context{argc, argv};  
-    
-    while( ler.getEntrada().compare("quit") != 0){ //comparar se a entrada eh igual quite
-        // leitura do comando
-        //printf("oi%s\n", ler.getEntrada().c_str());
-        
-        context.initialize();
-        context.rendering();
-
-        ler.deleteEntrada();
-        ler.ler();
-        //printf("%s\n", ler.getEntrada().c_str());
-    }
-    ler.deleteEntrada();
-    context.printVersion();
-
-    context.finalize();
 
     for (int i = 0; i < objetoVetor.size(); i++) {
         delete objetoVetor[i];
@@ -1406,7 +1372,28 @@ int main(int argc, char *argv[]){
 
     delete axisScene;
     delete cam;
+}
 
-    //context.runLoop();
+int main(int argc, char *argv[]){
+
+    cam = new camera();
+
+    // leitura do comando
+    ler.ler();
+    OpenGLContext context{argc, argv};  
+    
+    while( ler.getEntrada().compare("quit") != 0){ //comparar se a entrada eh igual quite
+        
+        context.initialize();
+        context.rendering();
+
+        ler.deleteEntrada();
+        ler.ler();
+    }
+    ler.deleteEntrada();
+    context.printVersion();
+
+    context.finalize();
+
     return 0;
 }
