@@ -14,7 +14,6 @@ public:
             glm::mat4 matrizview, glm::mat4 matrizprojection, glm::vec3 cor);
     ~objeto();
 
-
     string nome;
     unsigned int vao;
     unsigned int vbo;
@@ -24,6 +23,24 @@ public:
     glm::mat4 projection;
     glm::vec3 outColor;
 
-    float Ka, Kd, Ks;
 
 };
+
+objeto::objeto(string name, unsigned int idvao, unsigned int idvbo, vector<glm::vec3> dadosDoObjeto, glm::mat4 matrizmodel,
+               glm::mat4 matrizview, glm::mat4 matrizprojection, glm::vec3 cor)
+{
+    nome = name;
+    vao = idvao;
+    vbo = idvbo;
+    vertexBuffer = dadosDoObjeto;
+    model = matrizmodel;
+    view = matrizview;
+    projection = matrizprojection;
+    outColor = cor;
+
+}
+
+objeto::~objeto()
+{
+}
+
