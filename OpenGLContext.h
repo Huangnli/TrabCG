@@ -20,7 +20,7 @@ public:
     void finalize() const;  // Finalize our render
     
 private:
-    unsigned int programId;
+    
     unsigned int programNone;
     unsigned int programFlat;
     unsigned int programSmooth;
