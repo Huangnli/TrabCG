@@ -64,6 +64,10 @@ int lights_on;
 int axis_on;
 int wire = 0;
 
+float Ka = 0.2f;
+float Kd = 0.2f;
+float Ks = 0.2f;
+
 OpenGLContext::OpenGLContext(int argc, char *argv[]){
     glutInit(&argc, argv); // Initialize GLUT
 
@@ -344,8 +348,6 @@ void OpenGLContext::initialize(){
     //ajustando a camera (view matrix)
     view = cam->getViewMatrix();   //inicialização    
     
-    createShadersNone();
-
     //ajustando a projeção
     glm::mat4 projection = glm::mat4(1.0f);
     projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
@@ -444,7 +446,7 @@ void OpenGLContext::initialize(){
         }
         //printf("%s\n", name.c_str());
 
-        loadObj("cube.obj", vertexData);
+        loadObj("objs/cube.obj", vertexData);
         nVertices = vertexData.size()/2;
         //printf("%d %u %u\n", nVertices, vaoid, vboid);
         
@@ -470,7 +472,7 @@ void OpenGLContext::initialize(){
         }
         //printf("%s\n", name.c_str());
 
-        loadObj("cone.obj", vertexData);
+        loadObj("objs/cone.obj", vertexData);
         nVertices = vertexData.size()/2;
         //printf("%d %u %u\n", nVertices, vaoid, vboid);
 
@@ -497,7 +499,7 @@ void OpenGLContext::initialize(){
         }
         //printf("%s\n", name.c_str());
 
-        loadObj("torus.obj", vertexData);
+        loadObj("objs/torus.obj", vertexData);
         nVertices = vertexData.size()/2;
         //printf("%d %u %u\n", nVertices, vaoid, vboid);
 
@@ -523,7 +525,7 @@ void OpenGLContext::initialize(){
         }
         //printf("%s\n", name.c_str());
 
-        loadObj("sphere.obj", vertexData);
+        loadObj("objs/sphere.obj", vertexData);
         nVertices = vertexData.size()/2;
         //printf("%d %u %u\n", nVertices, vaoid, vboid);
 
@@ -847,22 +849,20 @@ void OpenGLContext::initialize(){
             i++;
         }
 
-        // modifica os coeficientes de iluminação dos objetos conforme informado com 'type'
-        for(int j = 0; j < objetoVetor.size(); j++){
+        // modifica os coeficientes de iluminação globais de acordo com o 'type'
 				
-            if(strcmp(type.c_str(), "ambient") == 0){      
-				objetoVetor[j]->Ka = stof(fl1);           
-                
-			}
-            else if (strcmp(type.c_str(), "diffuse") == 0){
-                objetoVetor[j]->Kd = stof(fl1);
-            }
-
-            else if (strcmp(type.c_str(), "specular") == 0){
-                objetoVetor[j]->Ks = stof(fl1);
-            }
-
+        if(strcmp(type.c_str(), "ambient") == 0){      
+            Ka = stof(fl1);
         }
+            
+        else if (strcmp(type.c_str(), "diffuse") == 0){
+            Kd = stof(fl1);
+        }
+
+        else if (strcmp(type.c_str(), "specular") == 0){
+            Ks = stof(fl1);
+        }
+        
 
     }
 
@@ -877,20 +877,18 @@ void OpenGLContext::initialize(){
             i++;
         }
        
-        //zera os coeficientes de iluminação dos objetos conforme o 'type'
-        for (int j = 0; j < objetoVetor.size(); j++){
-
-            if (strcmp(type.c_str(), "ambient") == 0){
-                objetoVetor[j]->Ka = 0.0f;
-            }
-            else if (strcmp(type.c_str(), "diffuse") == 0){
-                objetoVetor[j]->Kd = 0.0f;
-            }
-
-            else if (strcmp(type.c_str(), "specular") == 0){
-                objetoVetor[j]->Ks = 0.0f;
-            }
+        //zera os coeficientes globaisde iluminação conforme o 'type'   
+        if (strcmp(type.c_str(), "ambient") == 0){
+            Ka = 0.0f;
         }
+        else if (strcmp(type.c_str(), "diffuse") == 0){
+            Kd = 0.0f;
+        }
+
+        else if (strcmp(type.c_str(), "specular") == 0){
+            Ks = 0.0f;
+        }
+        
     }
     
     //ligar wire
@@ -943,12 +941,17 @@ void OpenGLContext::initialize(){
     if (flat_on == 1){
         createShadersFlat();
     }
-    if (smooth_on == 1){
+    else if (smooth_on == 1){
         createShadersSmooth();
     }
-    if(phong_on == 1){
+    else if(phong_on == 1){
         createShadersPhong();
     }
+    else{
+        createShadersNone();
+    }
+    
+    
     if (lights_on == 1){
         createShadersLight();
     }
@@ -1005,7 +1008,7 @@ void OpenGLContext::initialize(){
         vboid++;
     }
 
-    //incializar a luz mesmo sem ter linght_on
+    //incializar a luz mesmo sem ter light_on
     for(int i = 0; i < lightVetor.size(); i++){
         glGenVertexArrays(1, static_cast<GLuint *>(&lightVetor[i]->vao));
         glBindVertexArray(lightVetor[i]->vao);
@@ -1093,13 +1096,15 @@ void OpenGLContext::rendering() const{
 
             //passando os coeficientes de iluminação para o fragment shader
             int kaLoc = glGetUniformLocation(programFlat, "Ka");
-            glUniform1f(kaLoc, objetoVetor[i]->Ka);
+            glUniform1f(kaLoc, Ka);
 
             int kdLoc = glGetUniformLocation(programFlat, "Kd");
-            glUniform1f(kdLoc, objetoVetor[i]->Kd);
+            glUniform1f(kdLoc, Kd);
 
             int ksLoc = glGetUniformLocation(programFlat, "Ks");
-            glUniform1f(ksLoc, objetoVetor[i]->Ks);
+            glUniform1f(ksLoc, Ks);
+
+            //printf("ka=%f kd=%f ks=%f\n", Ka, Kd, Ks);
 
             //passando a posição da camera para o fragment shader
             int viewerLoc = glGetUniformLocation(programFlat, "viewerPosition");
@@ -1149,13 +1154,15 @@ void OpenGLContext::rendering() const{
 
             //passando os coeficientes de iluminação para o fragment shader
             int kaLoc = glGetUniformLocation(programSmooth, "Ka");
-            glUniform1f(kaLoc, objetoVetor[i]->Ka);
+            glUniform1f(kaLoc, Ka);
 
             int kdLoc = glGetUniformLocation(programSmooth, "Kd");
-            glUniform1f(kdLoc, objetoVetor[i]->Kd);
+            glUniform1f(kdLoc, Kd);
 
             int ksLoc = glGetUniformLocation(programSmooth, "Ks");
-            glUniform1f(ksLoc, objetoVetor[i]->Ks);
+            glUniform1f(ksLoc, Ks);
+
+            //printf("ka=%f kd=%f ks=%f\n", Ka, Kd, Ks);
 
             //passando a posição da camera para o fragment shader
             int viewerLoc = glGetUniformLocation(programSmooth, "viewerPosition");
@@ -1204,13 +1211,15 @@ void OpenGLContext::rendering() const{
 
             //passando os coeficientes de iluminação para o fragment shader
             int kaLoc = glGetUniformLocation(programPhong, "Ka");
-            glUniform1f(kaLoc, objetoVetor[i]->Ka);
+            glUniform1f(kaLoc, Ka);
 
             int kdLoc = glGetUniformLocation(programPhong, "Kd");
-            glUniform1f(kdLoc, objetoVetor[i]->Kd);
+            glUniform1f(kdLoc, Kd);
 
             int ksLoc = glGetUniformLocation(programPhong, "Ks");
-            glUniform1f(ksLoc, objetoVetor[i]->Ks);
+            glUniform1f(ksLoc, Ks);
+
+            //printf("ka=%f kd=%f ks=%f\n", Ka, Kd, Ks);
 
             //passando a posição da camera para o fragment shader
             int viewerLoc = glGetUniformLocation(programPhong, "viewerPosition");
