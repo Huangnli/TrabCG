@@ -16,4 +16,8 @@
 * - [x] none, 
 * - [x] flat, 
 * - [ ] smooth 
-* - [ ] phong;
+* - [x] phong;
+
+## Linux
+  * Compile command: g++ --std=c++11 *.cpp -o main -lGLEW -lGL -lGLU -lglut
+  * To execute: ./main
