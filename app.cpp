@@ -49,7 +49,7 @@ camera *cam;
 glm::mat4 view;
 
 lerComando ler;
-int nVertices;
+
 unsigned int vboid = 1;
 unsigned int vaoid = 1;
 unsigned int vboidAxis = 1;
@@ -447,8 +447,6 @@ void OpenGLContext::initialize(){
         //printf("%s\n", name.c_str());
 
         loadObj("objs/cube.obj", vertexData);
-        nVertices = vertexData.size()/2;
-        //printf("%d %u %u\n", nVertices, vaoid, vboid);
         
         //inicialização da model
         glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
@@ -473,9 +471,7 @@ void OpenGLContext::initialize(){
         //printf("%s\n", name.c_str());
 
         loadObj("objs/cone.obj", vertexData);
-        nVertices = vertexData.size()/2;
-        //printf("%d %u %u\n", nVertices, vaoid, vboid);
-
+       
         //inicialização da model
         glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
         //model = glm::rotate(model, 45.0f, glm::vec3(0.2f, 0.6f, 0.0f)); //para cone
@@ -500,8 +496,6 @@ void OpenGLContext::initialize(){
         //printf("%s\n", name.c_str());
 
         loadObj("objs/torus.obj", vertexData);
-        nVertices = vertexData.size()/2;
-        //printf("%d %u %u\n", nVertices, vaoid, vboid);
 
         //inicialização da model
         glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
@@ -526,9 +520,7 @@ void OpenGLContext::initialize(){
         //printf("%s\n", name.c_str());
 
         loadObj("objs/sphere.obj", vertexData);
-        nVertices = vertexData.size()/2;
-        //printf("%d %u %u\n", nVertices, vaoid, vboid);
-
+       
         //inicialização da model
         glm::mat4 model = glm::mat4(1.0); //gera uma identidade 4x4
         
