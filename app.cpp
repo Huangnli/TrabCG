@@ -350,6 +350,9 @@ void OpenGLContext::initialize(){
     glm::mat4 projection = glm::mat4(1.0f);
     projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
     //projection = glm::frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.5f, 2.0f);
+    //criando axis antes pois cam e lookat usa ele tbm
+    axis *aux = new axis(vaoidAxis, vboidAxis, view, projection);
+    axisScene = aux;
 
     //define o lookAt
     if (ler.getEntrada().compare(0, 6, "lookat") == 0){
@@ -747,8 +750,6 @@ void OpenGLContext::initialize(){
     if (ler.getEntrada().compare(0, 7, "axis_on") == 0){
         //criando shaders para axis
         createShadersAxis();
-        axis *aux = new axis(vaoidAxis, vboidAxis, view, projection);
-        axisScene = aux;
         axis_on = 1;
     }   
     
@@ -821,32 +822,6 @@ void OpenGLContext::initialize(){
         lights_on = 1;
         //criando shaders para luzes
         createShadersLight();
-
-        for(int i = 0; i < lightVetor.size(); i++){
-            glGenVertexArrays(1, static_cast<GLuint *>(&lightVetor[i]->vao));
-            glBindVertexArray(lightVetor[i]->vao);
-
-            glGenBuffers(1, static_cast<GLuint *>(&lightVetor[i]->vbo));
-            glBindBuffer(GL_ARRAY_BUFFER, lightVetor[i]->vbo);
-            glBufferData(GL_ARRAY_BUFFER, lightVetor[i]->lightBuffer.size() * sizeof(glm::vec3), lightVetor[i]->lightBuffer.data(), GL_STATIC_DRAW);
-            
-            
-            //able the first buffer
-            glEnableVertexAttribArray(0);
-            glEnableVertexAttribArray(1);
-
-            //passando a localização dos atributos para o shader - 0= inicio do VBO
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
-            glBindAttribLocation(this->programLight, 0, "lightPosition"); //vertexPosition = name of attribute in shader
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
-            glBindAttribLocation(this->programLight, 0, "lightColor"); //vertexPosition = name of attribute in shader
-
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            vaoidLight++;
-            vboidLight++;
-        }
 
     }
     
@@ -1030,6 +1005,32 @@ void OpenGLContext::initialize(){
         vboid++;
     }
 
+    //incializar a luz mesmo sem ter linght_on
+    for(int i = 0; i < lightVetor.size(); i++){
+        glGenVertexArrays(1, static_cast<GLuint *>(&lightVetor[i]->vao));
+        glBindVertexArray(lightVetor[i]->vao);
+
+        glGenBuffers(1, static_cast<GLuint *>(&lightVetor[i]->vbo));
+        glBindBuffer(GL_ARRAY_BUFFER, lightVetor[i]->vbo);
+        glBufferData(GL_ARRAY_BUFFER, lightVetor[i]->lightBuffer.size() * sizeof(glm::vec3), lightVetor[i]->lightBuffer.data(), GL_STATIC_DRAW);
+        
+        
+        //able the first buffer
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+        //passando a localização dos atributos para o shader - 0= inicio do VBO
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+        glBindAttribLocation(this->programLight, 0, "lightPosition"); //vertexPosition = name of attribute in shader
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+        glBindAttribLocation(this->programLight, 0, "lightColor"); //vertexPosition = name of attribute in shader
+
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        vaoidLight++;
+        vboidLight++;
+    }
     if (axis_on == 1){
            
         //init axis
@@ -1125,16 +1126,116 @@ void OpenGLContext::rendering() const{
             }        
                 
         }
-
         else if (smooth_on == 1){
-            /* code */
-        }
+            glUseProgram(this->programSmooth);
+            glBindVertexArray(objetoVetor[i]->vao);
+            glBindBuffer(GL_ARRAY_BUFFER, objetoVetor[i]->vbo);
+
+            //model
+            int modelLoc = glGetUniformLocation(programSmooth, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &objetoVetor[i]->model[0][0]);
+
+            //view
+            int viewLoc = glGetUniformLocation(programSmooth, "view");
+            glUniformMatrix4fv(viewLoc, 1, false, &objetoVetor[i]->view[0][0]);
+
+            //ajustando a camera
+            int projLoc = glGetUniformLocation(programSmooth, "projection");
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, &objetoVetor[i]->projection[0][0]);
+
+            //setting up color from shader by uniform
+            int colorLoc = glGetUniformLocation(programSmooth, "outColor");
+            glUniform3fv(colorLoc, 1, &objetoVetor[i]->outColor[0]);
+
+            //passando os coeficientes de iluminação para o fragment shader
+            int kaLoc = glGetUniformLocation(programSmooth, "Ka");
+            glUniform1f(kaLoc, objetoVetor[i]->Ka);
+
+            int kdLoc = glGetUniformLocation(programSmooth, "Kd");
+            glUniform1f(kdLoc, objetoVetor[i]->Kd);
+
+            int ksLoc = glGetUniformLocation(programSmooth, "Ks");
+            glUniform1f(ksLoc, objetoVetor[i]->Ks);
+
+            //passando a posição da camera para o fragment shader
+            int viewerLoc = glGetUniformLocation(programSmooth, "viewerPosition");
+            glUniform3fv(viewerLoc, 1, &cam->position[0]);
+            //glUniform3f(viewerLoc, -1.0f, 1.0f, 1.0f);
         
+
+            //verificar se há luzes na cena - passar o vetor de luzes
+            if (!lightVetor.empty()){
+
+                int n = lightVetor.size();
+                glUniform1i(glGetUniformLocation(programSmooth, "nLuzes"), n);
+
+                vector<glm::vec3> lights;
+                for (int j = 0; j < n; j++){
+                    //printf("entrou no for\n");
+                    lights.push_back(lightVetor[j]->lightPosition);
+                }
+                //printf("saiu do for\n");
+                //enviando a posição da luz para os shaders dos objetos
+                int lightLoc = glGetUniformLocation(programSmooth, "lights");
+                glUniform3fv(lightLoc, n, &lights[0][0]);
+                    
+            }     
+        }
         else if (phong_on == 1){
-            /* code */
-        }
+            glUseProgram(this->programPhong);
+            glBindVertexArray(objetoVetor[i]->vao);
+            glBindBuffer(GL_ARRAY_BUFFER, objetoVetor[i]->vbo);
+
+            //model
+            int modelLoc = glGetUniformLocation(programPhong, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &objetoVetor[i]->model[0][0]);
+
+            //view
+            int viewLoc = glGetUniformLocation(programPhong, "view");
+            glUniformMatrix4fv(viewLoc, 1, false, &objetoVetor[i]->view[0][0]);
+
+            //ajustando a camera
+            int projLoc = glGetUniformLocation(programPhong, "projection");
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, &objetoVetor[i]->projection[0][0]);
+
+            //setting up color from shader by uniform
+            int colorLoc = glGetUniformLocation(programPhong, "outColor");
+            glUniform3fv(colorLoc, 1, &objetoVetor[i]->outColor[0]);
+
+            //passando os coeficientes de iluminação para o fragment shader
+            int kaLoc = glGetUniformLocation(programPhong, "Ka");
+            glUniform1f(kaLoc, objetoVetor[i]->Ka);
+
+            int kdLoc = glGetUniformLocation(programPhong, "Kd");
+            glUniform1f(kdLoc, objetoVetor[i]->Kd);
+
+            int ksLoc = glGetUniformLocation(programPhong, "Ks");
+            glUniform1f(ksLoc, objetoVetor[i]->Ks);
+
+            //passando a posição da camera para o fragment shader
+            int viewerLoc = glGetUniformLocation(programPhong, "viewerPosition");
+            glUniform3fv(viewerLoc, 1, &cam->position[0]);
+            //glUniform3f(viewerLoc, -1.0f, 1.0f, 1.0f);
         
-                        
+
+            //verificar se há luzes na cena - passar o vetor de luzes
+            if (!lightVetor.empty()){
+
+                int n = lightVetor.size();
+                glUniform1i(glGetUniformLocation(programPhong, "nLuzes"), n);
+
+                vector<glm::vec3> lights;
+                for (int j = 0; j < n; j++){
+                    //printf("entrou no for\n");
+                    lights.push_back(lightVetor[j]->lightPosition);
+                }
+                //printf("saiu do for\n");
+                //enviando a posição da luz para os shaders dos objetos
+                int lightLoc = glGetUniformLocation(programPhong, "lights");
+                glUniform3fv(lightLoc, n, &lights[0][0]);
+                    
+            }        
+        }       
         else{   //ativa o shading None - padrão
                     
             glUseProgram(this->programNone);
@@ -1158,7 +1259,6 @@ void OpenGLContext::rendering() const{
             glUniform3fv(colorLoc, 1, &objetoVetor[i]->outColor[0]);
 
         }
-
 
         //verificar se eh pra desenhar com wire ou normal
         if (wire == 0)
