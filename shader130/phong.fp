@@ -45,11 +45,11 @@ void main(){
 vec3 calcIntensityLight(vec3 light, vec3 norm, vec3 fragPos, vec3 viewDir){
     
     //diffuse calc
-    vec3 lightDir = normalize(light - fragPos);  
+    vec3 lightDir = normalize(light - fragPos);       //vector L
     float diff = max(dot(norm, lightDir), 0.0f);
 
-    //specular calc
-    vec3 reflection = reflect(-lightDir, norm);
+    //specular calc de Phong
+    vec3 reflection = reflect(-lightDir, norm);      
     float spec = pow(max(dot(viewDir, reflection), 0.0f), 32);
 
     //attenuation calc
