@@ -1395,7 +1395,7 @@ int main(int argc, char *argv[]){
         ler.ler();
     }
     ler.deleteEntrada();
-    context.printVersion();
+    //context.printVersion();
 
     context.finalize();
 
