@@ -15,7 +15,7 @@
 * #### Define o tipo de shading usado para renderizar a cena. Tipos de shading possíveis: 
 * - [x] none, 
 * - [x] flat, 
-* - [ ] smooth 
+* - [x] smooth 
 * - [x] phong;
 
 ## Linux
